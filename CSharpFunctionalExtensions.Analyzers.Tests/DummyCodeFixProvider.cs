@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 
-namespace IfBrackets.Tests;
+namespace CSharpFunctionalExtensions.Analyzers.Tests;
 
 public sealed class DummyCodeFixProvider : CodeFixProvider
 {

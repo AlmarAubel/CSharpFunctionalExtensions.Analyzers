@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpFunctionalExtensions.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpFunctionalExtensions.Analyzers.Tests", "CSharpFunctionalExtensions.Analyzers.Tests\CSharpFunctionalExtensions.Analyzers.Tests.csproj", "{58E1FD0B-1711-44F9-B534-CCD88AD8174D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpFunctionalExtensions.Analyzers.Samples", "CSharpFunctionalExtensions.Analyzers.Samples\CSharpFunctionalExtensions.Analyzers.Samples.csproj", "{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
