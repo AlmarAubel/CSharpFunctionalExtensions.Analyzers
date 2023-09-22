@@ -1,0 +1,2 @@
+# CSharpFunctionalExtensions.Analyzers
+Code analyzers for CSharpFunctionalExtensions
