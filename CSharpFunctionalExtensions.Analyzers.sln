@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpFunctionalExtensions.Analyzers", "CSharpFunctionalExtensions.Analyzers\CSharpFunctionalExtensions.Analyzers.csproj", "{35474645-A286-4AD2-B777-2304A830196F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpFunctionalExtensions.Analyzers.Tests", "CSharpFunctionalExtensions.Analyzers.Tests\CSharpFunctionalExtensions.Analyzers.Tests.csproj", "{58E1FD0B-1711-44F9-B534-CCD88AD8174D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{35474645-A286-4AD2-B777-2304A830196F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35474645-A286-4AD2-B777-2304A830196F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35474645-A286-4AD2-B777-2304A830196F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
