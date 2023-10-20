@@ -22,6 +22,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     GitHubActionsImage.UbuntuLatest,
     On = new[] { GitHubActionsTrigger.Push },
     EnableGitHubToken = true,
+    AutoGenerate = false
     InvokedTargets = new[] { nameof(Pack) }
 )]
 [GitHubActions(
