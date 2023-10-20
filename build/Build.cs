@@ -37,8 +37,7 @@ class Build : NukeBuild
 {
     [Nuke.Common.Parameter] [Secret] readonly string NugetApiKey;
     [Nuke.Common.Parameter] readonly string NugetApiUrl = "https://api.nuget.org/v3/index.json"; //Path.GetTempPath();
-   
-
+    
     [GitRepository] readonly GitRepository Repository;
 
     [GitVersion] readonly GitVersion GitVersion;
