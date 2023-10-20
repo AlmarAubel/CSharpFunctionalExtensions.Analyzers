@@ -2,23 +2,20 @@
 
 public class Class1
 {
-
     public Result<int> Foo()
     {
-           return Result.Success<int>(1);
+        return Result.Success<int>(1);
     }
 
     public Result<int> Foo2()
     {
         return Result.Success(1);
     }
-    
-    
+
     public Result<int> Foo3()
     {
         return Result.Failure<int>("Could not find any id");
     }
-    
 
     public void Bar()
     {

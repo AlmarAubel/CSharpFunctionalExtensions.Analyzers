@@ -25,22 +25,34 @@ public class PreferImplicitCastingOfResultCodeFixProvider : CodeFixProvider
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
         // Find the type argument syntax within the invocation
-        var typeArgumentSyntax = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<TypeArgumentListSyntax>().First();
+        var typeArgumentSyntax = root.FindToken(diagnosticSpan.Start)
+            .Parent.AncestorsAndSelf()
+            .OfType<TypeArgumentListSyntax>()
+            .First();
 
         context.RegisterCodeFix(
             CodeAction.Create(
                 title: Title,
                 createChangedDocument: c => RemoveExplicitTypeArgument(context.Document, typeArgumentSyntax, c),
-                equivalenceKey: Title),
-            diagnostic);
+                equivalenceKey: Title
+            ),
+            diagnostic
+        );
     }
 
-    private async Task<Document> RemoveExplicitTypeArgument(Document document, TypeArgumentListSyntax typeArgumentSyntax, CancellationToken cancellationToken)
+    private async Task<Document> RemoveExplicitTypeArgument(
+        Document document,
+        TypeArgumentListSyntax typeArgumentSyntax,
+        CancellationToken cancellationToken
+    )
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         // Generate a new invocation without the type argument
-        var newInvocation = typeArgumentSyntax.Parent.ReplaceNode(typeArgumentSyntax, SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList<TypeSyntax>()));
+        var newInvocation = typeArgumentSyntax.Parent.ReplaceNode(
+            typeArgumentSyntax,
+            SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList<TypeSyntax>())
+        );
 
         // Replace the old invocation with the new one
         var newRoot = root.ReplaceNode(typeArgumentSyntax.Parent, newInvocation);

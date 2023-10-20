@@ -11,13 +11,20 @@ public class PreferImplicitCastingOfResult : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "CFE0002";
     private const string Title = "Prefer Implicit Type Arguments for Result Methods";
-    private const string MessageFormat = "Consider using implicit type casting instead of returning the specific type directly.";
+    private const string MessageFormat =
+        "Consider using implicit type casting instead of returning the specific type directly.";
     private const string Category = "CodeStyle";
     private const string HelpLinkUri = "https://github.com/vkhorikov/CSharpFunctionalExtensions";
 
-    public static readonly DiagnosticDescriptor Rule =
-        new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true,
-            helpLinkUri: HelpLinkUri);
+    public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        DiagnosticId,
+        Title,
+        MessageFormat,
+        Category,
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri
+    );
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -31,9 +38,11 @@ public class PreferImplicitCastingOfResult : DiagnosticAnalyzer
         var invocation = (InvocationExpressionSyntax)context.Node;
         var methodSymbol = context.SemanticModel.GetSymbolInfo(invocation).Symbol as IMethodSymbol;
 
-        if (methodSymbol?.Name is not ("Success" or "Failure") ||
-            methodSymbol.ContainingType.Name != "Result" ||
-            methodSymbol.TypeArguments.Length <= 0)
+        if (
+            methodSymbol?.Name is not ("Success" or "Failure")
+            || methodSymbol.ContainingType.Name != "Result"
+            || methodSymbol.TypeArguments.Length <= 0
+        )
         {
             return;
         }
@@ -51,13 +60,16 @@ public class PreferImplicitCastingOfResult : DiagnosticAnalyzer
             }
         }
         // Check if it's an assignment
-        else if (invocation.Parent is EqualsValueClauseSyntax equalsValue &&
-                 equalsValue.Parent.Parent is VariableDeclarationSyntax variableDeclaration)
+        else if (
+            invocation.Parent is EqualsValueClauseSyntax equalsValue
+            && equalsValue.Parent.Parent is VariableDeclarationSyntax variableDeclaration
+        )
         {
             expectedType = context.SemanticModel.GetTypeInfo(variableDeclaration.Type).Type;
         }
 
-        if (expectedType == null || !SymbolEqualityComparer.Default.Equals(expectedType, methodSymbol.ReturnType)) return;
+        if (expectedType == null || !SymbolEqualityComparer.Default.Equals(expectedType, methodSymbol.ReturnType))
+            return;
 
         var diagnostic = Diagnostic.Create(Rule, invocation.GetLocation());
         context.ReportDiagnostic(diagnostic);

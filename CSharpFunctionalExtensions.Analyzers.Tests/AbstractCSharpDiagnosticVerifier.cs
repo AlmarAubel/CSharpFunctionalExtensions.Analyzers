@@ -7,13 +7,13 @@ using Roslynator.Testing.CSharp.Xunit;
 
 namespace CSharpFunctionalExtensions.Analyzers.Tests;
 
-public abstract class AbstractCSharpDiagnosticVerifier<TAnalyzer, TFixProvider> : XunitDiagnosticVerifier<TAnalyzer, TFixProvider>
+public abstract class AbstractCSharpDiagnosticVerifier<TAnalyzer, TFixProvider>
+    : XunitDiagnosticVerifier<TAnalyzer, TFixProvider>
     where TAnalyzer : DiagnosticAnalyzer, new()
     where TFixProvider : CodeFixProvider, new()
 {
     public override CSharpTestOptions Options => DefaultCSharpTestOptions.Value;
 }
-
 
 internal static class DefaultCSharpTestOptions
 {
@@ -37,8 +37,6 @@ internal static class DefaultCSharpTestOptions
         return CSharpTestOptions.Default
             .WithParseOptions(CSharpTestOptions.Default.ParseOptions.WithLanguageVersion(LanguageVersion.CSharp10))
             .WithAllowedCompilerDiagnosticIds(allowedCompilerDiagnosticIds)
-            .AddConfigOptions(
-                ("indent_size", "4"),
-                ("indent_style", "space"));
+            .AddConfigOptions(("indent_size", "4"), ("indent_style", "space"));
     }
 }
