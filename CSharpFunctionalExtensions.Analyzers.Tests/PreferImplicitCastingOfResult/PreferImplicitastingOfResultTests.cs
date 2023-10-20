@@ -3,15 +3,18 @@ using Roslynator.Testing.CSharp;
 
 namespace CSharpFunctionalExtensions.Analyzers.Tests.PreferImplicitCastingOfResult;
 
-public class PreferImplicitCastingOfResultTests : AbstractCSharpDiagnosticVerifier<Analyzers.PreferImplicitCastingOfResult, PreferImplicitCastingOfResultCodeFixProvider>
+
+public class PreferImplicitCastingOfResultTests : AbstractCSharpDiagnosticVerifier<Analyzers.PreferImplicitCastingOfResult,
+    PreferImplicitCastingOfResultCodeFixProvider>
 {
     public override DiagnosticDescriptor Descriptor => Analyzers.PreferImplicitCastingOfResult.Rule;
 
     [Fact]
     public async Task Test_ReturnOfExplicitResult()
     {
-        
-        await VerifyDiagnosticAsync(AddContext("""return [|Result.Failure<int>("Could not find any id")|];"""), options: CSharpTestOptions());
+        await VerifyDiagnosticAndFixAsync(
+            AddContext("""return [|Result.Failure<int>("Could not find any id")|];"""),
+            AddContext("""return "Could not find any id";"""), options: CSharpTestOptions());
     }
 
     private CSharpTestOptions CSharpTestOptions()
@@ -24,7 +27,7 @@ public class PreferImplicitCastingOfResultTests : AbstractCSharpDiagnosticVerifi
     private string AddContext(string testString) =>
         $$"""
           namespace CSharpFunctionalExtensions.Analyzers.Samples;
-          
+
           public class Class1
           {
               public Result<int> Foo()
@@ -32,6 +35,6 @@ public class PreferImplicitCastingOfResultTests : AbstractCSharpDiagnosticVerifi
                      {{testString}}
               }
           }
-          
+
           """;
 }

@@ -68,7 +68,7 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
 
     private IEnumerable<IfStatementSyntax> TerminatedBeforeAccessWhenNotSuccess(MemberAccessExpressionSyntax memberAccess)
     {
-        var enclosingBlock = memberAccess.Ancestors().FirstOrDefault(a => a is BlockSyntax);
+        var enclosingBlock = memberAccess.AncestorsAndSelf().FirstOrDefault(a => a is BlockSyntax);
         if (enclosingBlock == null) return  Enumerable.Empty<IfStatementSyntax>();
 
         // Check if the Value variable is checked is succes and returned before accessing it
