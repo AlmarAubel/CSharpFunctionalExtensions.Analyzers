@@ -42,6 +42,7 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
 
         if (memberAccess.Name.ToString() != "Value")
             return;
+
         var symbolInfo = context.SemanticModel.GetSymbolInfo(memberAccess);
 
         if (
@@ -69,7 +70,7 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
     private static IEnumerable<SyntaxNode> HasBeenCheckedBeforeAccess(MemberAccessExpressionSyntax memberAccess)
     {
         var enclosingControlStructures = memberAccess
-            .Ancestors()
+            .AncestorsAndSelf()
             .Where(a => a is IfStatementSyntax or ConditionalExpressionSyntax);
 
         var checksSucces = enclosingControlStructures
@@ -77,20 +78,19 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
                 structure =>
                     (
                         structure is IfStatementSyntax ifStatement
-                        && WillExecute(ifStatement.Condition) == CheckResult.CheckedSuccess
+                        && DetermineCheckResult(ifStatement.Condition) == CheckResult.CheckedSuccess
                     )
                     || (
                         structure is ConditionalExpressionSyntax ternary
-                        && WillExecute(ternary.Condition) == CheckResult.CheckedSuccess
+                        && DetermineCheckResult(ternary.Condition) == CheckResult.CheckedSuccess
                     )
             )
             .ToList();
+
         return checksSucces;
     }
 
-    private IEnumerable<IfStatementSyntax> TerminatedBeforeAccessWhenNotSuccess(
-        MemberAccessExpressionSyntax memberAccess
-    )
+    private IEnumerable<IfStatementSyntax> TerminatedBeforeAccessWhenNotSuccess(SyntaxNode memberAccess)
     {
         var enclosingBlock = memberAccess.AncestorsAndSelf().FirstOrDefault(a => a is BlockSyntax);
         if (enclosingBlock == null)
@@ -100,12 +100,34 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
         return enclosingBlock
             .DescendantNodes()
             .OfType<IfStatementSyntax>()
-            .Where(ifStatement => WillExecute(ifStatement.Condition) == CheckResult.CheckedFailure)
-            .Where(ifStatement => ContainsTerminatingStatement(ifStatement.Statement))
+            .Where(ifStatement =>
+            {
+                var willExecute = DetermineCheckResult(ifStatement.Condition) == CheckResult.CheckedFailure;
+
+                if (
+                    willExecute
+                    && (
+                        IsInside<BinaryExpressionSyntax>(ifStatement, memberAccess)
+                        || IsInside<ConditionalExpressionSyntax>(ifStatement, memberAccess)
+                    )
+                )
+                    return true;
+
+                return willExecute && ContainsTerminatingStatement(ifStatement.Statement);
+            })
             .ToList();
     }
 
-    private static CheckResult WillExecute(ExpressionSyntax condition)
+    private static bool IsInside<T>(IfStatementSyntax ifStatement, SyntaxNode memberAccess)
+        where T : SyntaxNode
+    {
+        return ifStatement
+            .DescendantNodes()
+            .OfType<T>()
+            .Any(expression => expression.DescendantNodesAndSelf().Any(a => memberAccess == a));
+    }
+
+    private static CheckResult DetermineCheckResult(ExpressionSyntax condition)
     {
         switch (condition)
         {
@@ -114,8 +136,8 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
                 {
                     case SyntaxKind.AmpersandAmpersandToken:
                     {
-                        var leftResult = WillExecute(binaryExpression.Left);
-                        var rightResult = WillExecute(binaryExpression.Right);
+                        var leftResult = DetermineCheckResult(binaryExpression.Left);
+                        var rightResult = DetermineCheckResult(binaryExpression.Right);
                         if (leftResult == CheckResult.Unchecked)
                             return rightResult;
                         if (rightResult == CheckResult.Unchecked)
@@ -125,12 +147,15 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
                     }
                     case SyntaxKind.BarBarToken:
                     {
-                        var leftResult = WillExecute(binaryExpression.Left);
-                        var rightResult = WillExecute(binaryExpression.Right);
-                        if (leftResult == CheckResult.Unchecked)
+                        var leftResult = DetermineCheckResult(binaryExpression.Left);
+                        var rightResult = DetermineCheckResult(binaryExpression.Right);
+
+                        if (leftResult is CheckResult.Unchecked or CheckResult.CheckedFailure)
                             return leftResult;
+
                         if (rightResult == CheckResult.Unchecked)
                             return rightResult;
+
                         // If both sides are the same, return either; otherwise, it's ambiguous so return Unchecked.
                         return leftResult == rightResult ? leftResult : CheckResult.Unchecked;
                     }
@@ -176,7 +201,7 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
             case PrefixUnaryExpressionSyntax prefixUnary when prefixUnary.Operand.ToString().Contains("IsFailure"):
                 return CheckResult.CheckedSuccess; // This means we found a !IsFailure, so it's equivalent to IsSuccess.
             case ConditionalExpressionSyntax ternary:
-                return WillExecute(ternary.Condition);
+                return DetermineCheckResult(ternary.Condition);
         }
 
         return CheckResult.Unchecked;

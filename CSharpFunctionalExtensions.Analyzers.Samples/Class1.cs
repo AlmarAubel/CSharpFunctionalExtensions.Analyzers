@@ -17,6 +17,15 @@ public class Class1
         return Result.Failure<int>("Could not find any id");
     }
 
+    public void Foo4()
+    {
+        var a = 1;
+        if (1 == 1 && a > 2)
+        {
+            var b = 2223;
+        }
+    }
+
     public void Bar()
     {
         Result<int> failure = Result.Failure<int>("Could not find any id");

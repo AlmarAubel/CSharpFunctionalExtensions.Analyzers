@@ -43,7 +43,7 @@ public class UseResultValueWithoutCheckTests
     [InlineData("if(result.IsSuccess) Console.WriteLine(result.Value);")]
     [InlineData("if(result.IsSuccess == true) Console.WriteLine(result.Value);")]
     [InlineData("if(result.IsSuccess && new Random().Next() > 1) Console.WriteLine(result.Value);")]
-    [InlineData("var x=  result.IsSuccess ? result.Value: 0;")]
+    [InlineData("var x = result.IsSuccess ? result.Value: 0;")]
     public async Task TestNoDiagnostic_AccesValueOnResultObject_WithCheckIsSuccess(string source)
     {
         await VerifyNoDiagnosticAsync(AddContext(source), options: CSharpTestOptions());
