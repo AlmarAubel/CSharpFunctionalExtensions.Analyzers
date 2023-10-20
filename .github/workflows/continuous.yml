@@ -42,3 +42,4 @@ jobs:
         run: ./build.cmd Pack
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
