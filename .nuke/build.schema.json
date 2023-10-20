@@ -6,6 +6,10 @@
     "build": {
       "type": "object",
       "properties": {
+        "ArtifactsType": {
+          "type": "string",
+          "description": "Artifacts Type"
+        },
         "Continue": {
           "type": "boolean",
           "description": "Indicates to continue a previously failed build attempt"
@@ -73,9 +77,11 @@
             "enum": [
               "Clean",
               "Compile",
+              "CreateRelease",
               "Pack",
               "Print",
               "Publish",
+              "PublishToGithub",
               "Push",
               "Restore",
               "Test"
@@ -90,9 +96,11 @@
             "enum": [
               "Clean",
               "Compile",
+              "CreateRelease",
               "Pack",
               "Print",
               "Publish",
+              "PublishToGithub",
               "Push",
               "Restore",
               "Test"
