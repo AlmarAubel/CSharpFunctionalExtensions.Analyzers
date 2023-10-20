@@ -31,6 +31,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     On = new[] { GitHubActionsTrigger.WorkflowDispatch },
     InvokedTargets = new[] { nameof(Push) },
     EnableGitHubToken = true,
+    AutoGenerate = false,
     ImportSecrets = new[] { nameof(NugetApiKey) }
 )]
 class Build : NukeBuild
