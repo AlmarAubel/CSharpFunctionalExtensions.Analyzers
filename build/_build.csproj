@@ -14,13 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="Nuke.Common" Version="7.0.6" />
-    <PackageReference Include="Nuke.Components" Version="7.0.6" />
-    <PackageReference Include="GitVersion.Tool" Version="5.12.0" />
+    <PackageReference Include="Nuke.Components" Version="7.0.6" />   
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageDownload Include="GitVersion.Tool" Version="[5.12.0]" />
-  </ItemGroup>
-
-
 </Project>
