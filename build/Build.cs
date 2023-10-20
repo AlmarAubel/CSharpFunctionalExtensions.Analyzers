@@ -1,9 +1,11 @@
+using System;
 using Nuke.Common;
 using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
+using Nuke.Common.Tools.GitVersion;
 using Serilog;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
@@ -11,7 +13,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     "continuous",
     GitHubActionsImage.UbuntuLatest,
     On = new[] { GitHubActionsTrigger.Push },
-    InvokedTargets = new[] { nameof(Test) }
+    InvokedTargets = new[] { nameof(Compile), nameof(Test) }
 )]
 [GitHubActions(
     "publish",
@@ -19,15 +21,18 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     On = new[] { GitHubActionsTrigger.WorkflowDispatch },
     InvokedTargets = new[] { nameof(Push) }
 )]
- class Build : NukeBuild
+class Build : NukeBuild
 {
-    [Parameter] readonly string NugetApiKey;
+    [Parameter] [Secret] readonly string NugetApiKey;
+    [Parameter] readonly string NugetApiUrl = "https://api.nuget.org/v3/index.json"; //Path.GetTempPath();
     AbsolutePath SourceDirectory => RootDirectory;
     AbsolutePath OutputDirectory => RootDirectory / "output";
-    
+
     [GitRepository] readonly GitRepository Repository;
-    
-    public static int Main()=> Execute<Build>(x=> x.Compile);
+
+    [GitVersion] readonly GitVersion GitVersion;
+
+    public static int Main() => Execute<Build>(x => x.Compile);
 
     Target Clean => _ => _
         .Executes(() =>
@@ -68,23 +73,30 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
         .DependsOn(Publish)
         .Executes(() =>
         {
-            DotNetPack(s => s.SetConfiguration("Release").EnableNoBuild().SetOutputDirectory(OutputDirectory));
+            Log.Information("GitVersion = {Value}", GitVersion.MajorMinorPatch);
+            DotNetPack(s =>
+                s.SetConfiguration("Release")
+                    .EnableNoBuild()
+                    .SetAssemblyVersion(GitVersion.MajorMinorPatch)
+                    .SetOutputDirectory(OutputDirectory));
         });
 
     Target Push => _ => _
         .DependsOn(Pack)
+        .Requires(() => NugetApiUrl)
+        .Requires(() => NugetApiKey)
         .Executes(() =>
         {
-            // DotNetNuGetPush(
-            //     s =>
-            //         s.SetSource("https://api.nuget.org/v3/index.json")
-            //             .SetApiKey(NugetApiKey)
-            //             .CombineWith(
-            //                 FileSystemTasks.GlobFiles(OutputDirectory, "*.nupkg").NotEmpty(),
-            //                 (_, v) => _.SetTargetPath(v)
-            //             )
-            // );
+            DotNetNuGetPush(s =>
+                s.SetSource(NugetApiUrl)
+                    .SetApiKey(NugetApiKey)
+                    .CombineWith(
+                        OutputDirectory.GlobFiles("*.nupkg").NotEmpty(),
+                        (_, v) => _.SetTargetPath(v)
+                    )
+            );
         });
+
 
     Target Print => _ => _
         .Executes(() =>
@@ -92,12 +104,12 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
             Log.Information("Commit = {Value}", Repository.Commit);
             Log.Information("Branch = {Value}", Repository.Branch);
             Log.Information("Tags = {Value}", Repository.Tags);
-    
+
             Log.Information("main branch = {Value}", Repository.IsOnMainBranch());
             Log.Information("main/master branch = {Value}", Repository.IsOnMainOrMasterBranch());
             Log.Information("release/* branch = {Value}", Repository.IsOnReleaseBranch());
             Log.Information("hotfix/* branch = {Value}", Repository.IsOnHotfixBranch());
-    
+
             Log.Information("Https URL = {Value}", Repository.HttpsUrl);
             Log.Information("SSH URL = {Value}", Repository.SshUrl);
         });
