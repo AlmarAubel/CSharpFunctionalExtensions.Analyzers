@@ -24,6 +24,10 @@ public class Class1
         {
             var b = 2223;
         }
+        var y = Result.Success<int>(1);
+        int? a = null;
+        if (!y.IsSuccess)
+            Console.Write(y.Value);
     }
 
     public void Bar()
