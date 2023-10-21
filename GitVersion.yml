@@ -1,4 +1,4 @@
-next-version: 1.0.1
+next-version: 1.0.4
 assembly-versioning-scheme: MajorMinorPatch
 assembly-file-versioning-scheme: MajorMinorPatch
 mode: ContinuousDelivery

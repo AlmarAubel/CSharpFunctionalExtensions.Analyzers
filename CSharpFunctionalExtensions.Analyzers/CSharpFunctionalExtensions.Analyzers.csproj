@@ -6,6 +6,15 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>true</IsPackable>
+        
+        <IsRoslynComponent>true</IsRoslynComponent>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+        <DevelopmentDependency>true</DevelopmentDependency>
+        <NoPackageAnalysis>true</NoPackageAnalysis>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    </PropertyGroup>
+    <PropertyGroup>
         <PackageId>CSharpFunctionalExtensions.Analyzers</PackageId>
         <Authors>Almar Aubel</Authors>
         <Description>CSharpFunctionalExtensions analyzers - functional extensions analyzers for C#</Description>
@@ -21,13 +30,18 @@
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
     </PropertyGroup>
+    
     <ItemGroup>
-        <PackageReference Include="CSharpFunctionalExtensions" Version="2.40.3" />
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+        <PackageReference Include="CSharpFunctionalExtensions" Version="2.40.3" >
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.6.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="docs" />
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
 </Project>

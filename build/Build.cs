@@ -31,6 +31,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     On = new[] { GitHubActionsTrigger.WorkflowDispatch },
     InvokedTargets = new[] { nameof(Push) },
     EnableGitHubToken = true,
+    AutoGenerate = false,
     ImportSecrets = new[] { nameof(NugetApiKey) }
 )]
 class Build : NukeBuild
@@ -41,7 +42,7 @@ class Build : NukeBuild
     [GitRepository] readonly GitRepository Repository;
 
     [GitVersion] readonly GitVersion GitVersion;
-    [Nuke.Common.Parameter("Artifacts Type")]readonly string ArtifactsType;
+    [Nuke.Common.Parameter("Artifacts Type")]readonly string ArtifactsType = "*.nupkg";
 
     static GitHubActions GitHubActions => GitHubActions.Instance;
     static AbsolutePath ArtifactsDirectory => RootDirectory / ".artifacts";
@@ -93,6 +94,7 @@ class Build : NukeBuild
     Target Pack => _ => _
         .DependsOn(Publish)
         .Triggers(PublishToGithub)
+        .Produces(ArtifactsDirectory / ArtifactsType)
         .Executes(() =>
         {
             Log.Information("GitVersion = {Value}", GitVersion.MajorMinorPatch);

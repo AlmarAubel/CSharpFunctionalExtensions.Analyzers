@@ -43,3 +43,4 @@ jobs:
         env:
           NugetApiKey: ${{ secrets.NUGET_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
