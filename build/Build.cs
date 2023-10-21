@@ -12,6 +12,7 @@ using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitHub;
 using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
+using Nuke.Components;
 using Octokit;
 using Octokit.Internal;
 using Serilog;
@@ -74,7 +75,15 @@ class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            DotNetBuild(s => s.SetProjectFile(SourceDirectory).SetConfiguration("Release"));
+            ReportSummary(s => s
+                .WhenNotNull(GitVersion, (_, o) => _
+                    .AddPair("Version", o.SemVer)));
+            
+            DotNetBuild(s => s.SetProjectFile(SourceDirectory)
+                .SetConfiguration("Release")
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion));
         });
 
     Target Test => _ => _
@@ -98,6 +107,10 @@ class Build : NukeBuild
         .Executes(() =>
         {
             Log.Information("GitVersion = {Value}", GitVersion.MajorMinorPatch);
+            ReportSummary(s => s
+                .WhenNotNull(GitVersion, (_, v) => _
+                    .AddPair("Packed version", v.NuGetVersionV2)));
+
             DotNetPack(s =>
                 s.SetConfiguration("Release")
                     .EnableNoBuild()
@@ -126,6 +139,7 @@ class Build : NukeBuild
         .DependsOn(Pack)
         .Requires(() => NugetApiUrl)
         .Requires(() => NugetApiKey)
+        .Triggers(CreateRelease)
         .Executes(() =>
         {
             DotNetNuGetPush(s =>
@@ -138,23 +152,7 @@ class Build : NukeBuild
             );
         });
 
-
-    Target Print => _ => _
-        .Executes(() =>
-        {
-            Log.Information("Commit = {Value}", Repository.Commit);
-            Log.Information("Branch = {Value}", Repository.Branch);
-            Log.Information("Tags = {Value}", Repository.Tags);
-
-            Log.Information("main branch = {Value}", Repository.IsOnMainBranch());
-            Log.Information("main/master branch = {Value}", Repository.IsOnMainOrMasterBranch());
-            Log.Information("release/* branch = {Value}", Repository.IsOnReleaseBranch());
-            Log.Information("hotfix/* branch = {Value}", Repository.IsOnHotfixBranch());
-
-            Log.Information("Https URL = {Value}", Repository.HttpsUrl);
-            Log.Information("SSH URL = {Value}", Repository.SshUrl);
-        });
-
+    
     Target CreateRelease => _ => _
         .Description($"Creating release for the publishable version.")
         .OnlyWhenStatic(() =>Repository.IsOnMainOrMasterBranch()|| Repository.IsOnReleaseBranch())
@@ -185,7 +183,7 @@ class Build : NukeBuild
                 .Repository
                 .Release.Create(owner, name, newRelease);
 
-            OutputDirectory.GlobFiles( ArtifactsType)
+            OutputDirectory.GlobFiles(ArtifactsType)
                 .ForEach(async x => await UploadReleaseAssetToGithub(createdRelease, x));
 
             await GitHubTasks
@@ -196,11 +194,26 @@ class Build : NukeBuild
         });
 
 
-    private static async Task UploadReleaseAssetToGithub(Release release, string asset)
+    static async Task UploadReleaseAssetToGithub(Release release, string asset)
     {
         await using var artifactStream = File.OpenRead(asset);
         var fileName = Path.GetFileName(asset);
         var assetUpload = new ReleaseAssetUpload { FileName = fileName, ContentType = PackageContentType, RawData = artifactStream, };
         await GitHubTasks.GitHubClient.Repository.Release.UploadAsset(release, assetUpload);
     }
+    
+    Target Print => _ => _
+        .Executes(() =>
+        {
+            Log.Information("Commit = {Value}", Repository.Commit);
+            Log.Information("Version = {Value}", GitVersion.NuGetVersionV2);
+            Log.Information("Branch = {Value}", Repository.Branch);
+            Log.Information("Tags = {Value}", Repository.Tags);
+
+            Log.Information("main branch = {Value}", Repository.IsOnMainBranch());
+            Log.Information("develop branch = {Value}", Repository.IsOnDevelopBranch());
+
+            Log.Information("Https URL = {Value}", Repository.HttpsUrl);
+            Log.Information("SSH URL = {Value}", Repository.SshUrl);
+        });
 }
