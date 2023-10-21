@@ -25,7 +25,7 @@ public class Class1
             var b = 2223;
         }
         var y = Result.Success(1);
-        int? a = null;
+        int? aa = null;
         if (!y.IsSuccess)
             Console.Write(y.Value);
     }
