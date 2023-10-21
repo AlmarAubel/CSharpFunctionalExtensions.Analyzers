@@ -143,13 +143,12 @@ class Build : NukeBuild
         .Executes(() =>
         {
             Log.Information("Commit = {Value}", Repository.Commit);
+            Log.Information("Version = {Value}", GitVersion.NuGetVersionV2);
             Log.Information("Branch = {Value}", Repository.Branch);
             Log.Information("Tags = {Value}", Repository.Tags);
 
             Log.Information("main branch = {Value}", Repository.IsOnMainBranch());
-            Log.Information("main/master branch = {Value}", Repository.IsOnMainOrMasterBranch());
-            Log.Information("release/* branch = {Value}", Repository.IsOnReleaseBranch());
-            Log.Information("hotfix/* branch = {Value}", Repository.IsOnHotfixBranch());
+            Log.Information("develop branch = {Value}", Repository.IsOnDevelopBranch());
 
             Log.Information("Https URL = {Value}", Repository.HttpsUrl);
             Log.Information("SSH URL = {Value}", Repository.SshUrl);
