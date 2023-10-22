@@ -12,7 +12,7 @@ public class PreferImplicitCastingOfResult : DiagnosticAnalyzer
     public const string DiagnosticId = "CFE0002";
     private const string Title = "Prefer Implicit Type Arguments for Result Methods";
     private const string MessageFormat =
-        "Consider using implicit type casting instead of returning the specific type directly.";
+        "Consider using implicit type casting instead of returning the specific type directly";
     private const string Category = "CodeStyle";
     private const string HelpLinkUri = "https://github.com/vkhorikov/CSharpFunctionalExtensions";
 
@@ -30,6 +30,8 @@ public class PreferImplicitCastingOfResult : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+        context.EnableConcurrentExecution();
         context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
     }
 
@@ -47,7 +49,7 @@ public class PreferImplicitCastingOfResult : DiagnosticAnalyzer
             return;
         }
 
-        ITypeSymbol expectedType = null;
+        ITypeSymbol? expectedType = null;
 
         // Check if it's a return statement
         if (invocation.Parent is ReturnStatementSyntax)
@@ -56,16 +58,14 @@ public class PreferImplicitCastingOfResult : DiagnosticAnalyzer
             if (containingMethod != null)
             {
                 var containingMethodSymbol = context.SemanticModel.GetDeclaredSymbol(containingMethod);
-                expectedType = containingMethodSymbol.ReturnType;
+                expectedType = containingMethodSymbol!.ReturnType;
             }
         }
         // Check if it's an assignment
         else if (
-            invocation.Parent is EqualsValueClauseSyntax equalsValue
-            && equalsValue.Parent.Parent is VariableDeclarationSyntax variableDeclaration
-        )
+            invocation.Parent is EqualsValueClauseSyntax { Parent.Parent: VariableDeclarationSyntax variableDeclaration })
         {
-            expectedType = context.SemanticModel.GetTypeInfo(variableDeclaration.Type).Type;
+            expectedType = context.SemanticModel.GetTypeInfo(variableDeclaration.Type).Type!;
         }
 
         if (expectedType == null || !SymbolEqualityComparer.Default.Equals(expectedType, methodSymbol.ReturnType))

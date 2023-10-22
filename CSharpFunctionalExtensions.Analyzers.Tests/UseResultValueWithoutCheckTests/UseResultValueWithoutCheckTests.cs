@@ -22,7 +22,10 @@ public class UseResultValueWithoutCheckTests
     [Fact]
     public async Task Test_AccesValueWithoutCheck()
     {
-        await VerifyDiagnosticAsync(AddContext("Console.WriteLine([|result.Value|]);"), options: CSharpTestOptions());
+        await VerifyDiagnosticAsync(
+            AddContext("Console.WriteLine([|result.Value|]);", "Result.Success<int>(1)"),
+            options: CSharpTestOptions()
+        );
     }
 
     [Fact]
@@ -33,7 +36,8 @@ public class UseResultValueWithoutCheckTests
                 $"""
                               if(!result.IsSuccess) return;
                               Console.WriteLine(result.Value);
-                        """
+                        """,
+                "Result.Success<int>(1)"
             ),
             options: CSharpTestOptions()
         );
@@ -84,17 +88,24 @@ public class UseResultValueWithoutCheckTests
     }
 
     [Fact]
-    public async Task AccesValueOnResultObject_WithcheckingIsFailure_ShouldPass()
+    public async Task Test_AccessValueAfterCheckForFailure2()
     {
-        await VerifyNoDiagnosticAsync(
-            AddContext(
-                """
-                       if(!result.IsFailure) Console.WriteLine(result.Value);
-                       var x =  !result.IsFailure ? result.Value: 0;
-                       if (result.IsFailure) return;
-                       var y = result.Value;
-                       """
-            ),
+        await VerifyDiagnosticAsync(
+            $$"""
+                                        using System;
+                                        using CSharpFunctionalExtensions;
+
+                                        public class FunctionsWithResultObject
+                                        {
+                                            public void GetId(int a)
+                                            {
+                                               var result = Result.Success<int>(1);
+                                               Console.WriteLine([|result.Value|]);
+                                                if(result.IsFailure )
+                                                  Console.WriteLine([|result.Value|]);
+                                            }
+                                        }
+                                        """,
             options: CSharpTestOptions()
         );
     }
@@ -110,7 +121,7 @@ public class UseResultValueWithoutCheckTests
         return cSharpTestOptions;
     }
 
-    private string AddContext(string testString) =>
+    private string AddContext(string testString, string result = "Result.Success(1)") =>
         $$"""
           using System;
           using CSharpFunctionalExtensions;
@@ -119,7 +130,7 @@ public class UseResultValueWithoutCheckTests
           {
               public void GetId(int a)
               {
-                 var result = Result.Success(1);
+                 var result = {{result}};
                  {{testString}}
               }
           }

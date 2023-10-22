@@ -25,8 +25,8 @@ public class PreferImplicitCastingOfResultCodeFixProvider : CodeFixProvider
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
         // Find the type argument syntax within the invocation
-        var typeArgumentSyntax = root.FindToken(diagnosticSpan.Start)
-            .Parent.AncestorsAndSelf()
+        var typeArgumentSyntax = root?.FindToken(diagnosticSpan.Start)
+            .Parent?.AncestorsAndSelf()
             .OfType<TypeArgumentListSyntax>()
             .First();
 
@@ -55,7 +55,7 @@ public class PreferImplicitCastingOfResultCodeFixProvider : CodeFixProvider
         );
 
         // Replace the old invocation with the new one
-        var newRoot = root.ReplaceNode(typeArgumentSyntax.Parent, newInvocation);
+        var newRoot = root?.ReplaceNode(typeArgumentSyntax.Parent, newInvocation);
 
         return document.WithSyntaxRoot(newRoot);
     }
