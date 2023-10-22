@@ -5,9 +5,9 @@ using Roslynator.Testing.CSharp;
 namespace CSharpFunctionalExtensions.Analyzers.Tests.UseResultValueWithoutCheckTests;
 
 public class UseResultValueWithoutCheckTests
-    : AbstractCSharpDiagnosticVerifier<UseResultValueWithoutCheck, DummyCodeFixProvider>
+    : AbstractCSharpDiagnosticVerifier<UseResultValueWithoutCheck.UseResultValueWithoutCheck, DummyCodeFixProvider>
 {
-    public override DiagnosticDescriptor Descriptor => UseResultValueWithoutCheck.Rule;
+    public override DiagnosticDescriptor Descriptor => UseResultValueWithoutCheck.UseResultValueWithoutCheck.Rule;
 
     [Theory]
     [InlineData("if(!result.IsSuccess) Console.WriteLine( [|result.Value|]);")]
@@ -22,7 +22,10 @@ public class UseResultValueWithoutCheckTests
     [Fact]
     public async Task Test_AccesValueWithoutCheck()
     {
-        await VerifyDiagnosticAsync(AddContext("Console.WriteLine([|result.Value|]);"), options: CSharpTestOptions());
+        await VerifyDiagnosticAsync(
+            AddContext("Console.WriteLine([|result.Value|]);", "Result.Success<int>(1)"),
+            options: CSharpTestOptions()
+        );
     }
 
     [Fact]
@@ -33,7 +36,8 @@ public class UseResultValueWithoutCheckTests
                 $"""
                               if(!result.IsSuccess) return;
                               Console.WriteLine(result.Value);
-                        """
+                        """,
+                "Result.Success<int>(1)"
             ),
             options: CSharpTestOptions()
         );
@@ -84,17 +88,25 @@ public class UseResultValueWithoutCheckTests
     }
 
     [Fact]
-    public async Task AccesValueOnResultObject_WithcheckingIsFailure_ShouldPass()
+    public async Task Test_AccessWithinReturnStatement()
     {
-        await VerifyNoDiagnosticAsync(
-            AddContext(
-                """
-                       if(!result.IsFailure) Console.WriteLine(result.Value);
-                       var x =  !result.IsFailure ? result.Value: 0;
-                       if (result.IsFailure) return;
-                       var y = result.Value;
-                       """
-            ),
+        await VerifyDiagnosticAsync(
+            $$"""
+                                        using System;
+                                        using CSharpFunctionalExtensions;
+
+                                        public class Class2
+                                        {
+                                            public int Test()
+                                            {
+                                                var y = Result.Success(1);
+                                                if (y.IsFailure)
+                                                    return [|y.Value|];
+                                                
+                                                return 1;
+                                            }
+                                        }
+                                        """,
             options: CSharpTestOptions()
         );
     }
@@ -110,7 +122,7 @@ public class UseResultValueWithoutCheckTests
         return cSharpTestOptions;
     }
 
-    private string AddContext(string testString) =>
+    private string AddContext(string testString, string result = "Result.Success(1)") =>
         $$"""
           using System;
           using CSharpFunctionalExtensions;
@@ -119,7 +131,7 @@ public class UseResultValueWithoutCheckTests
           {
               public void GetId(int a)
               {
-                 var result = Result.Success(1);
+                 var result = {{result}};
                  {{testString}}
               }
           }

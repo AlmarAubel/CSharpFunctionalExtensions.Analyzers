@@ -6,12 +6,12 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CSharpFunctionalExtensions.Analyzers;
+namespace CSharpFunctionalExtensions.Analyzers.PreferImplicitCastingOfResult;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PreferImplicitCastingOfResultCodeFixProvider)), Shared]
 public class PreferImplicitCastingOfResultCodeFixProvider : CodeFixProvider
 {
-    public const string DiagnosticId = PreferImplicitCastingOfResult.DiagnosticId;
+    public const string DiagnosticId = Analyzers.PreferImplicitCastingOfResult.PreferImplicitCastingOfResult.DiagnosticId;
     private const string Title = "Use implicit type argument";
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticId);
@@ -25,8 +25,8 @@ public class PreferImplicitCastingOfResultCodeFixProvider : CodeFixProvider
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
         // Find the type argument syntax within the invocation
-        var typeArgumentSyntax = root.FindToken(diagnosticSpan.Start)
-            .Parent.AncestorsAndSelf()
+        var typeArgumentSyntax = root?.FindToken(diagnosticSpan.Start)
+            .Parent?.AncestorsAndSelf()
             .OfType<TypeArgumentListSyntax>()
             .First();
 
@@ -55,7 +55,7 @@ public class PreferImplicitCastingOfResultCodeFixProvider : CodeFixProvider
         );
 
         // Replace the old invocation with the new one
-        var newRoot = root.ReplaceNode(typeArgumentSyntax.Parent, newInvocation);
+        var newRoot = root?.ReplaceNode(typeArgumentSyntax.Parent, newInvocation);
 
         return document.WithSyntaxRoot(newRoot);
     }

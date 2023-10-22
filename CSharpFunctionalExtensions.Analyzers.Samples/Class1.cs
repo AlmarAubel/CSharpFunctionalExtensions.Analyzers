@@ -26,7 +26,7 @@ public class Class1
         }
         var y = Result.Success(1);
         int? aa = null;
-        if (!y.IsSuccess)
+        if (y.IsFailure)
             Console.Write(y.Value);
     }
 
@@ -34,5 +34,17 @@ public class Class1
     {
         Result<int> failure = Result.Failure<int>("Could not find any id");
         Result<int> success = Result.Success<int>(1);
+    }
+}
+
+public class Class2
+{
+    public int Test()
+    {
+        var y = Result.Success(1);
+
+        if (y.IsFailure) return y.Value;
+
+        return 1;
     }
 }

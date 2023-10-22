@@ -1,10 +1,12 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Nuke.Common;
 using Nuke.Common.ChangeLog;
 using Nuke.Common.CI.GitHubActions;
+using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
@@ -35,6 +37,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     AutoGenerate = false,
     ImportSecrets = new[] { nameof(NugetApiKey) }
 )]
+[UnsetVisualStudioEnvironmentVariables]
 class Build : NukeBuild
 {
     [Nuke.Common.Parameter] [Secret] readonly string NugetApiKey;
@@ -66,12 +69,11 @@ class Build : NukeBuild
     Target Clean => _ => _
         .Executes(() =>
         {
-            FileSystemTasks.DeleteDirectory(OutputDirectory);
-            FileSystemTasks.EnsureCleanDirectory(OutputDirectory);
+            OutputDirectory.CreateOrCleanDirectory();
         });
 
     Target Restore => _ => _
-        .DependsOn(Clean)
+        .DependsOn(Clean)       
         .Executes(() =>
         {
             DotNetRestore(s => s.SetProjectFile(SourceDirectory));
@@ -222,5 +224,13 @@ class Build : NukeBuild
 
             Log.Information("Https URL = {Value}", Repository.HttpsUrl);
             Log.Information("SSH URL = {Value}", Repository.SshUrl);
+            
+            Log.Information("ChangeLogFile = {Value}", ChangeLogFile);
+            Log.Information("SourceDirectory = {Value}", SourceDirectory);
+            Log.Information("RootDirectory = {Value}", RootDirectory);
+            Log.Information("OutputDirectory = {Value}", OutputDirectory);
+            Log.Information("ArtifactsDirectory = {Value}", ArtifactsDirectory);
+            Log.Information("BranchSpec = {Value}", BranchSpec);
+            Log.Information("IsTag = {Value}", IsTag);
         });
 }
