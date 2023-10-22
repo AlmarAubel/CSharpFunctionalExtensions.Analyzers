@@ -5,9 +5,9 @@ using Roslynator.Testing.CSharp;
 namespace CSharpFunctionalExtensions.Analyzers.Tests.UseResultValueWithoutCheckTests;
 
 public class UseResultValueWithoutCheckTests
-    : AbstractCSharpDiagnosticVerifier<UseResultValueWithoutCheck, DummyCodeFixProvider>
+    : AbstractCSharpDiagnosticVerifier<UseResultValueWithoutCheck.UseResultValueWithoutCheck, DummyCodeFixProvider>
 {
-    public override DiagnosticDescriptor Descriptor => UseResultValueWithoutCheck.Rule;
+    public override DiagnosticDescriptor Descriptor => UseResultValueWithoutCheck.UseResultValueWithoutCheck.Rule;
 
     [Theory]
     [InlineData("if(!result.IsSuccess) Console.WriteLine( [|result.Value|]);")]
@@ -88,21 +88,22 @@ public class UseResultValueWithoutCheckTests
     }
 
     [Fact]
-    public async Task Test_AccessValueAfterCheckForFailure2()
+    public async Task Test_AccessWithinReturnStatement()
     {
         await VerifyDiagnosticAsync(
             $$"""
                                         using System;
                                         using CSharpFunctionalExtensions;
 
-                                        public class FunctionsWithResultObject
+                                        public class Class2
                                         {
-                                            public void GetId(int a)
+                                            public int Test()
                                             {
-                                               var result = Result.Success<int>(1);
-                                               Console.WriteLine([|result.Value|]);
-                                                if(result.IsFailure )
-                                                  Console.WriteLine([|result.Value|]);
+                                                var y = Result.Success(1);
+                                                if (y.IsFailure)
+                                                    return [|y.Value|];
+                                                
+                                                return 1;
                                             }
                                         }
                                         """,

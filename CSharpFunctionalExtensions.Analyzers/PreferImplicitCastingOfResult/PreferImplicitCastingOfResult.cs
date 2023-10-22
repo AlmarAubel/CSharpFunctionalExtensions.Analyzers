@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace CSharpFunctionalExtensions.Analyzers;
+namespace CSharpFunctionalExtensions.Analyzers.PreferImplicitCastingOfResult;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class PreferImplicitCastingOfResult : DiagnosticAnalyzer

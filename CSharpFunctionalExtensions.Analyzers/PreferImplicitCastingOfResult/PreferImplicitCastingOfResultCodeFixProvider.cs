@@ -6,12 +6,12 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CSharpFunctionalExtensions.Analyzers;
+namespace CSharpFunctionalExtensions.Analyzers.PreferImplicitCastingOfResult;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PreferImplicitCastingOfResultCodeFixProvider)), Shared]
 public class PreferImplicitCastingOfResultCodeFixProvider : CodeFixProvider
 {
-    public const string DiagnosticId = PreferImplicitCastingOfResult.DiagnosticId;
+    public const string DiagnosticId = Analyzers.PreferImplicitCastingOfResult.PreferImplicitCastingOfResult.DiagnosticId;
     private const string Title = "Use implicit type argument";
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticId);

@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions.Analyzers.PreferImplicitCastingOfResult;
 using Microsoft.CodeAnalysis;
 using Roslynator.Testing.CSharp;
 
@@ -5,11 +6,11 @@ namespace CSharpFunctionalExtensions.Analyzers.Tests.PreferImplicitCastingOfResu
 
 public class PreferImplicitCastingOfResultTests
     : AbstractCSharpDiagnosticVerifier<
-        Analyzers.PreferImplicitCastingOfResult,
+        Analyzers.PreferImplicitCastingOfResult.PreferImplicitCastingOfResult,
         PreferImplicitCastingOfResultCodeFixProvider
     >
 {
-    public override DiagnosticDescriptor Descriptor => Analyzers.PreferImplicitCastingOfResult.Rule;
+    public override DiagnosticDescriptor Descriptor => Analyzers.PreferImplicitCastingOfResult.PreferImplicitCastingOfResult.Rule;
 
     [Fact(Skip = "Work in progees")]
     public async Task Test_ReturnOfExplicitResult()
