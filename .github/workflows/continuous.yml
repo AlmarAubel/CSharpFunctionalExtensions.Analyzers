@@ -30,7 +30,7 @@ jobs:
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0
         with:
-          versionSpec: '5.x'
+          versionSpec: '5.10'
       - name: 'Cache: .nuke/temp, ~/.nuget/packages'
         uses: actions/cache@v3
         with:
@@ -38,7 +38,7 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
-      - name: 'Run: Pack'
+      - name: 'Run: Nuke ci build'
         run: ./build.cmd Pack
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
