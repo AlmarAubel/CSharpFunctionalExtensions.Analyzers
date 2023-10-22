@@ -4,7 +4,8 @@ assembly-versioning-scheme: MajorMinor
 assembly-file-versioning-scheme: MajorMinorPatch
 
 branches:
-  main:
+  master:
+    regex: ^master$|^main$
     tag: ''
   develop:
     tag: 'alpha'
