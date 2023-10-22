@@ -39,22 +39,28 @@ class Build : NukeBuild
 {
     [Nuke.Common.Parameter] [Secret] readonly string NugetApiKey;
     [Nuke.Common.Parameter] readonly string NugetApiUrl = "https://api.nuget.org/v3/index.json"; //Path.GetTempPath();
-    
+
     [GitRepository] readonly GitRepository Repository;
 
     [GitVersion] readonly GitVersion GitVersion;
-    [Nuke.Common.Parameter("Artifacts Type")]readonly string ArtifactsType = "*.nupkg";
+    [Nuke.Common.Parameter("Artifacts Type")] readonly string ArtifactsType = "*.nupkg";
 
     static GitHubActions GitHubActions => GitHubActions.Instance;
     static AbsolutePath ArtifactsDirectory => RootDirectory / ".artifacts";
     static AbsolutePath SourceDirectory => RootDirectory;
     static AbsolutePath OutputDirectory => RootDirectory / "output";
-    
+
     static readonly string PackageContentType = "application/octet-stream";
     static string ChangeLogFile => RootDirectory / "CHANGELOG.md";
+    
+    string BranchSpec => GitHubActions?.Ref;
+    bool IsTag => BranchSpec != null && BranchSpec.Contains("refs/tags", StringComparison.OrdinalIgnoreCase);
+
+
     string GithubNugetFeed => GitHubActions != null
         ? $"https://nuget.pkg.github.com/{GitHubActions.RepositoryOwner}/index.json"
         : null;
+
     public static int Main() => Execute<Build>(x => x.Compile);
 
     Target Clean => _ => _
@@ -78,7 +84,7 @@ class Build : NukeBuild
             ReportSummary(s => s
                 .WhenNotNull(GitVersion, (_, o) => _
                     .AddPair("Version", o.SemVer)));
-            
+
             DotNetBuild(s => s.SetProjectFile(SourceDirectory)
                 .SetConfiguration("Release")
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
@@ -117,11 +123,11 @@ class Build : NukeBuild
                     .SetVersion(GitVersion.NuGetVersionV2)
                     .SetOutputDirectory(ArtifactsDirectory));
         });
-    
+
     Target PublishToGithub => _ => _
         .Description($"Publishing to Github for Development only.")
         .Triggers(CreateRelease)
-        .OnlyWhenStatic(() => Repository.IsOnDevelopBranch() || GitHubActions.IsPullRequest)
+        .OnlyWhenStatic(() => Repository.IsOnDevelopBranch() || GitHubActions?.IsPullRequest == true)
         .Executes(() =>
         {
             ArtifactsDirectory.GlobFiles(ArtifactsType)
@@ -135,10 +141,12 @@ class Build : NukeBuild
                     );
                 });
         });
+
     Target Push => _ => _
         .DependsOn(Pack)
         .Requires(() => NugetApiUrl)
         .Requires(() => NugetApiKey)
+        .OnlyWhenDynamic(() => IsTag, "No Tag added to commit")
         .Triggers(CreateRelease)
         .Executes(() =>
         {
@@ -151,11 +159,10 @@ class Build : NukeBuild
                     )
             );
         });
-
     
     Target CreateRelease => _ => _
         .Description($"Creating release for the publishable version.")
-        .OnlyWhenStatic(() =>Repository.IsOnMainOrMasterBranch()|| Repository.IsOnReleaseBranch())
+        .OnlyWhenStatic(() => Repository.IsOnMainOrMasterBranch() || Repository.IsOnReleaseBranch())
         .Executes(async () =>
         {
             var credentials = new Credentials(GitHubActions.Token);
@@ -201,7 +208,7 @@ class Build : NukeBuild
         var assetUpload = new ReleaseAssetUpload { FileName = fileName, ContentType = PackageContentType, RawData = artifactStream, };
         await GitHubTasks.GitHubClient.Repository.Release.UploadAsset(release, assetUpload);
     }
-    
+
     Target Print => _ => _
         .Executes(() =>
         {
