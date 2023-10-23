@@ -24,7 +24,7 @@
         <PackageReference Include="Microsoft.CodeAnalysis.CodeFix.Testing" Version="1.1.1" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="1.1.1"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="1.1.1"/>        
-        <PackageReference Include="Roslynator.Testing.CSharp.Xunit" Version="4.6.0" />
+        <PackageReference Include="Roslynator.Testing.CSharp.Xunit" Version="4.6.1" />
     </ItemGroup>
 
 
