@@ -2,11 +2,11 @@
 
     <PropertyGroup>
         <!--netstandard2.0;net5.0;net6.0-->
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>netstandard2.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>true</IsPackable>
-        
+        <LangVersion>latest</LangVersion>
         <IsRoslynComponent>true</IsRoslynComponent>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
@@ -14,9 +14,10 @@
         <NoPackageAnalysis>true</NoPackageAnalysis>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     </PropertyGroup>
-    <PropertyGroup>
+    <PropertyGroup Label="Package info">
         <PackageId>CSharpFunctionalExtensions.Analyzers</PackageId>
         <Authors>Almar Aubel</Authors>
+        <Copyright>Copyright Almar Aubel 2023- $([System.DateTime]::Now.ToString(yyyy))</Copyright>
         <Description>CSharpFunctionalExtensions analyzers - functional extensions analyzers for C#</Description>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageTags>C# Functional Analyzers Roslyn</PackageTags>
@@ -29,6 +30,7 @@
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
     
     <ItemGroup>
