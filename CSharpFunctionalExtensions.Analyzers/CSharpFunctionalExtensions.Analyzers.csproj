@@ -17,7 +17,7 @@
     <PropertyGroup Label="Package info">
         <PackageId>CSharpFunctionalExtensions.Analyzers</PackageId>
         <Authors>Almar Aubel</Authors>
-        <Copyright>Copyright Almar Aubel 2023- $([System.DateTime]::Now.ToString(yyyy))</Copyright>
+        <Copyright>Copyright Almar Aubel 2023-$([System.DateTime]::Now.ToString(yyyy))</Copyright>
         <Description>CSharpFunctionalExtensions analyzers - functional extensions analyzers for C#</Description>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageTags>C# Functional Analyzers Roslyn</PackageTags>
