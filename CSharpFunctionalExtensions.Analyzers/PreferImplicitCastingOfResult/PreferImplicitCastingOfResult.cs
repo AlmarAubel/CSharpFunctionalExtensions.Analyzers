@@ -21,8 +21,8 @@ public class PreferImplicitCastingOfResult : DiagnosticAnalyzer
         Title,
         MessageFormat,
         Category,
-        DiagnosticSeverity.Warning,
-        isEnabledByDefault: true,
+        DiagnosticSeverity.Info,
+        isEnabledByDefault: false,
         helpLinkUri: HelpLinkUri
     );
 
