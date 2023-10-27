@@ -24,6 +24,7 @@ public class Class1
         {
             var b = 2223;
         }
+
         var y = Result.Success(1);
         int? aa = null;
         if (y.IsFailure)
@@ -46,5 +47,26 @@ public class Class2
         if (y.IsFailure) return y.Value;
 
         return 1;
+    }
+
+    public int PatternMatching()
+    {
+        var result = Result.Success(1);
+        var id = result switch
+        {
+            { IsSuccess: true }=> result.Value,
+            { Error: "eror" } => 0,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        switch (result.IsSuccess)
+        {
+            case true:
+                return result.Value;
+            case false:
+                break;
+        }
+
+        return id;
     }
 }
