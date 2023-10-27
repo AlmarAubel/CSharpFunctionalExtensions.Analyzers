@@ -12,6 +12,8 @@
         <DevelopmentDependency>true</DevelopmentDependency>
         <NoPackageAnalysis>true</NoPackageAnalysis>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <Configurations>Debug;Release;Release local</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
     <PropertyGroup Label="Package info">
         <PackageId>CSharpFunctionalExtensions.Analyzers</PackageId>
@@ -20,6 +22,7 @@
         <Description>CSharpFunctionalExtensions analyzers - functional extensions analyzers for C#</Description>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageTags>C# Functional Analyzers Roslyn</PackageTags>
+        <PackageIcon>logo.png</PackageIcon>
         <PackageLicense>https://github.com/AlmarAubel/CSharpFunctionalExtensions.Analyzers/blob/main/LICENSE</PackageLicense>
         <PackageProjectUrl>https://github.com/AlmarAubel/CSharpFunctionalExtensions.Analyzers/</PackageProjectUrl>
         <RepositoryUrl>https://github.com/AlmarAubel/CSharpFunctionalExtensions.Analyzers/</RepositoryUrl>
@@ -40,9 +43,13 @@
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.1"/>
     </ItemGroup>
-
+    <ItemGroup>
+        <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+        <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+    </ItemGroup>
     <ItemGroup>
         <None Include="..\README.md" Pack="true" PackagePath="docs" />
+        <None Include="..\assets\logo.png" Pack="true" PackagePath="" />
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
 </Project>
