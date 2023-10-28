@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq.Expressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -72,7 +73,7 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
     {
         var enclosingControlStructures = memberAccess
             .AncestorsAndSelf()
-            .Where(a => a is IfStatementSyntax or ConditionalExpressionSyntax);
+            .Where(a => a is IfStatementSyntax or ConditionalExpressionSyntax or SwitchExpressionArmSyntax);
 
         var checksSucces = enclosingControlStructures
             .Where(
@@ -84,6 +85,9 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
                     || (
                         structure is ConditionalExpressionSyntax ternary
                         && DetermineCheckResult(ternary.Condition) == CheckResult.CheckedSuccess
+                    ) || (
+                        structure is SwitchExpressionArmSyntax switchExpressionArm
+                        && CheckSwitchExpressionArm(switchExpressionArm) == CheckResult.CheckedSuccess
                     )
             )
             .ToList();
@@ -118,6 +122,7 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
             })
             .ToList();
     }
+
     private static bool IsInside<T>(SyntaxNode statement, SyntaxNode memberAccess)
         where T : SyntaxNode
     {
@@ -132,61 +137,7 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
         switch (condition)
         {
             case BinaryExpressionSyntax binaryExpression:
-                switch (binaryExpression.OperatorToken.Kind())
-                {
-                    case SyntaxKind.AmpersandAmpersandToken:
-                        {
-                            var leftResult = DetermineCheckResult(binaryExpression.Left);
-                            var rightResult = DetermineCheckResult(binaryExpression.Right);
-                            if (leftResult == CheckResult.Unchecked)
-                                return rightResult;
-                            if (rightResult == CheckResult.Unchecked)
-                                return leftResult;
-                            // If both sides are the same, return either; otherwise, it's ambiguous so return Unchecked.
-                            return leftResult == rightResult ? leftResult : CheckResult.Unchecked;
-                        }
-                    case SyntaxKind.BarBarToken:
-                        {
-                            var leftResult = DetermineCheckResult(binaryExpression.Left);
-                            var rightResult = DetermineCheckResult(binaryExpression.Right);
-
-                            if (leftResult is CheckResult.Unchecked or CheckResult.CheckedFailure)
-                                return leftResult;
-
-                            if (rightResult == CheckResult.Unchecked)
-                                return rightResult;
-
-                            // If both sides are the same, return either; otherwise, it's ambiguous so return Unchecked.
-                            return leftResult == rightResult ? leftResult : CheckResult.Unchecked;
-                        }
-                    case SyntaxKind.EqualsEqualsToken:
-                        {
-                            var leftExpression = binaryExpression.Left.ToString();
-                            var rightExpression = binaryExpression.Right.ToString();
-
-                            if (IsSuccess(leftExpression, rightExpression))
-                                return CheckResult.CheckedSuccess;
-
-                            if (IsFailure(leftExpression, rightExpression))
-                                return CheckResult.CheckedFailure;
-
-                            break;
-                        }
-                    case SyntaxKind.ExclamationEqualsToken:
-                        {
-                            var leftExpression = binaryExpression.Left.ToString();
-                            var rightExpression = binaryExpression.Right.ToString();
-                            if (IsFailure(leftExpression, rightExpression))
-                                return CheckResult.CheckedFailure;
-
-                            if (IsSuccess(leftExpression, rightExpression))
-                                return CheckResult.CheckedSuccess;
-
-                            break;
-                        }
-                }
-
-                break;
+                return BinaryExpressionSyntax(binaryExpression);
             case MemberAccessExpressionSyntax memberAccess:
                 switch (memberAccess.Name.ToString())
                 {
@@ -203,6 +154,69 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
                 return CheckResult.CheckedSuccess; // This means we found a !IsFailure, so it's equivalent to IsSuccess.
             case ConditionalExpressionSyntax ternary:
                 return DetermineCheckResult(ternary.Condition);
+            case SwitchExpressionSyntax switchExpressionSyntax:
+                throw new NotImplementedException();
+        }
+
+        return CheckResult.Unchecked;
+    }
+
+    private static CheckResult BinaryExpressionSyntax(BinaryExpressionSyntax binaryExpression)
+    {
+        switch (binaryExpression.OperatorToken.Kind())
+        {
+            case SyntaxKind.AmpersandAmpersandToken:
+                {
+                    var leftResult = DetermineCheckResult(binaryExpression.Left);
+                    var rightResult = DetermineCheckResult(binaryExpression.Right);
+                    if (leftResult == CheckResult.Unchecked)
+                        return rightResult;
+                    if (rightResult == CheckResult.Unchecked)
+                        return leftResult;
+                    // If both sides are the same, return either; otherwise, it's ambiguous so return Unchecked.
+                    return leftResult == rightResult ? leftResult : CheckResult.Unchecked;
+                }
+            case SyntaxKind.BarBarToken:
+                {
+                    var leftResult = DetermineCheckResult(binaryExpression.Left);
+                    var rightResult = DetermineCheckResult(binaryExpression.Right);
+
+                    if (leftResult is CheckResult.Unchecked or CheckResult.CheckedFailure)
+                        return leftResult;
+
+                    if (rightResult == CheckResult.Unchecked)
+                        return rightResult;
+
+                    // If both sides are the same, return either; otherwise, it's ambiguous so return Unchecked.
+                    return leftResult == rightResult ? leftResult : CheckResult.Unchecked;
+                }
+            case SyntaxKind.EqualsEqualsToken:
+                {
+                    var leftExpression = binaryExpression.Left.ToString();
+                    var rightExpression = binaryExpression.Right.ToString();
+
+                    if (IsSuccess(leftExpression, rightExpression))
+                        return CheckResult.CheckedSuccess;
+
+                    if (IsFailure(leftExpression, rightExpression))
+                        return CheckResult.CheckedFailure;
+
+                    break;
+                }
+            case SyntaxKind.ExclamationEqualsToken:
+                {
+                    var leftExpression = binaryExpression.Left.ToString();
+                    var rightExpression = binaryExpression.Right.ToString();
+                    if (IsFailure(leftExpression, rightExpression))
+                        return CheckResult.CheckedFailure;
+
+                    if (IsSuccess(leftExpression, rightExpression))
+                        return CheckResult.CheckedSuccess;
+
+                    break;
+                }
+            default:
+                return CheckResult.Unchecked;
         }
 
         return CheckResult.Unchecked;
@@ -234,7 +248,26 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
             _ => false
         };
     }
-    
+
+    private static CheckResult CheckSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
+    {
+        var pattern = switchExpressionArm.Pattern;
+        // Todo check if switchExpression is on the result object
+        if (pattern is not RecursivePatternSyntax recursivePattern) return CheckResult.Unchecked;
+        foreach (var propPattern in recursivePattern.PropertyPatternClause?.Subpatterns)
+        {
+            var name = (propPattern.Pattern as ConstantPatternSyntax)?.Expression.ToString();
+
+            if ((name == "true" && propPattern.NameColon?.Name.Identifier.Text == "IsSuccess") ||
+                (name == "false" && propPattern.NameColon?.Name.Identifier.Text == "IsFailure"))
+            {
+                return CheckResult.CheckedSuccess;
+            }
+        }
+
+        return CheckResult.Unchecked;
+    }
+
     private static bool ContainsSyntaxNode(SyntaxNode statement, SyntaxNode targetNode)
     {
         return statement.DescendantNodesAndSelf().Any(n => n == targetNode);

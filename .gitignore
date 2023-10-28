@@ -21,4 +21,5 @@ project.fragment.lock.json
 *ncrunch*
 
 output
+.artifacts
 .nuke/temp

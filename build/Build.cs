@@ -122,6 +122,7 @@ class Build : NukeBuild
             DotNetPack(s =>
                 s.SetConfiguration("Release")
                     .EnableNoBuild()
+                    .SetIncludeSymbols(true)
                     .SetVersion(GitVersion.NuGetVersionV2)
                     .SetOutputDirectory(ArtifactsDirectory));
         });
@@ -129,7 +130,7 @@ class Build : NukeBuild
     Target PublishToGithub => _ => _
         .Description($"Publishing to Github for Development only.")
         .Triggers(CreateRelease)
-        .OnlyWhenStatic(() => Repository.IsOnDevelopBranch() || GitHubActions?.IsPullRequest == true)
+        .OnlyWhenStatic(() => Repository.IsOnDevelopBranch() && GitHubActions is not null || GitHubActions?.IsPullRequest == true)
         .Executes(() =>
         {
             ArtifactsDirectory.GlobFiles(ArtifactsType)

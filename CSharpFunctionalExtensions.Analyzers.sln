@@ -8,25 +8,38 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpFunctionalExtensions.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{6AB5176D-1D68-4325-8A95-C68DB3896950}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder", "SolutionFolder", "{761673E3-F08E-4F24-AE03-0CEAE89C761A}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		changelog.md = changelog.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Release local|Any CPU = Release local|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6AB5176D-1D68-4325-8A95-C68DB3896950}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6AB5176D-1D68-4325-8A95-C68DB3896950}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AB5176D-1D68-4325-8A95-C68DB3896950}.Release local|Any CPU.ActiveCfg = Release local|Any CPU
 		{35474645-A286-4AD2-B777-2304A830196F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{35474645-A286-4AD2-B777-2304A830196F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35474645-A286-4AD2-B777-2304A830196F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35474645-A286-4AD2-B777-2304A830196F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35474645-A286-4AD2-B777-2304A830196F}.Release local|Any CPU.ActiveCfg = Release local|Any CPU
+		{35474645-A286-4AD2-B777-2304A830196F}.Release local|Any CPU.Build.0 = Release local|Any CPU
 		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Release local|Any CPU.ActiveCfg = Release local|Any CPU
+		{58E1FD0B-1711-44F9-B534-CCD88AD8174D}.Release local|Any CPU.Build.0 = Release local|Any CPU
 		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Release local|Any CPU.ActiveCfg = Release local|Any CPU
+		{F6D2AC3C-F52A-4F03-BB3D-78DCB541B177}.Release local|Any CPU.Build.0 = Release local|Any CPU
 	EndGlobalSection
 EndGlobal
