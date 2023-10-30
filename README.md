@@ -1,3 +1,5 @@
+![Nuget](https://img.shields.io/nuget/v/CSharpFunctionalExtensions.Analyzers)
+
 # CSharpFunctionalExtensions.Analyzers
 
 Unofficial code analyzers for CSharpFunctionalExtensions. This project aims to provide code analyzers to identify potential issues or misuse of the `Result` object from the CSharpFunctionalExtensions library.
