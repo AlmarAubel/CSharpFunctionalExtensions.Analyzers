@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq.Expressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -55,82 +56,96 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
             return;
         }
 
-        // Get the enclosing block (e.g., the method or property body)
-        var checks = TerminatedBeforeAccessWhenNotSuccess(memberAccess);
-        if (checks.Any())
-            return;
+        var checksSucces = TraversFunctionBody(memberAccess);
 
         //Check if accessed inside if statement
-        var checksSucces = HasBeenCheckedBeforeAccess(memberAccess);
-        if (checksSucces.Any())
+        //var checksSucces = HasBeenCheckedBeforeAccess(memberAccess);
+        if (checksSucces)
             return;
 
         var diagnostic = Diagnostic.Create(Rule, memberAccess.GetLocation(), memberAccess.Expression);
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static IEnumerable<SyntaxNode> HasBeenCheckedBeforeAccess(MemberAccessExpressionSyntax memberAccess)
+    private bool TraversFunctionBody(MemberAccessExpressionSyntax memberAccess)
     {
-        var enclosingControlStructures = memberAccess
-            .AncestorsAndSelf()
-            .Where(a => a is IfStatementSyntax or ConditionalExpressionSyntax or SwitchExpressionArmSyntax);
+        // Find the enclosing method block
 
-        var checksSucces = enclosingControlStructures
-            .Where(
-                structure =>
-                    (
-                        structure is IfStatementSyntax ifStatement
-                        && DetermineCheckResult(ifStatement.Condition) == CheckResult.CheckedSuccess
-                    )
-                    || (
-                        structure is ConditionalExpressionSyntax ternary
-                        && DetermineCheckResult(ternary.Condition) == CheckResult.CheckedSuccess
-                    ) || (
-                        structure is SwitchExpressionArmSyntax switchExpressionArm
-                        && CheckSwitchExpressionArm(switchExpressionArm) == CheckResult.CheckedSuccess
-                    )
-            )
-            .ToList();
+        if (memberAccess.Ancestors().FirstOrDefault(a => a is MethodDeclarationSyntax) is not MethodDeclarationSyntax methodDeclaration)
+            return true;
 
-        return checksSucces;
+        if (methodDeclaration.Body is null) return true;
+
+        return NodeWalker(memberAccess, methodDeclaration.Body).CorrectUsage;
     }
 
-    private IEnumerable<IfStatementSyntax> TerminatedBeforeAccessWhenNotSuccess(SyntaxNode memberAccess)
-    {
-        var enclosingBlock = memberAccess.AncestorsAndSelf().FirstOrDefault(a => a is BlockSyntax);
-        if (enclosingBlock == null)
-            return Enumerable.Empty<IfStatementSyntax>();
 
-        // Check if the Value variable is checked is succes and returned before accessing it
-        return enclosingBlock
-            .DescendantNodes()
-            .OfType<IfStatementSyntax>()
-            .Where(ifStatement =>
+    private static WalkerResult NodeWalker(MemberAccessExpressionSyntax memberAccessValueResult, SyntaxNode node, WalkerResult? result = null)
+    {
+        result ??= WalkerResult.Default;
+
+        foreach (var child in node.ChildNodes())
+        {
+            switch (child)
             {
-                var willExecute = DetermineCheckResult(ifStatement.Condition) == CheckResult.CheckedFailure;
+                case IfStatementSyntax ifStatement:
+                    {
+                        result.CheckResult = DetermineCheckResult(ifStatement.Condition);
+                        var wresult = NodeWalker(memberAccessValueResult, ifStatement, result);
+                        if (wresult.CorrectUsage) return wresult;
+                        if (wresult is { CheckResult: CheckResult.CheckedSuccess,Terminated:true, AccessedValue: false })
+                        {
+                            wresult.CheckResult = CheckResult.Unchecked;
+                        }
+                        
+                        wresult.Terminated = false;
+                        break;
+                    }
+                case ReturnStatementSyntax or ThrowStatementSyntax:
+                    result.Terminated = true;
+                    return NodeWalker(memberAccessValueResult, child, result);
+                case ConditionalExpressionSyntax ternary:
+                    CheckTernaryCondition(memberAccessValueResult, result, ternary);
 
-                if (
-                    willExecute
-                    && (
-                        IsInside<BinaryExpressionSyntax>(ifStatement, memberAccess)
-                        || IsInside<ConditionalExpressionSyntax>(ifStatement, memberAccess)
-                    )
-                )
-                    return true;
+                    if (!result.CorrectUsage) return result;
+                    break;
+                case SwitchExpressionArmSyntax switchExpressionArmSyntax:
+                    result.CheckResult = CheckSwitchExpressionArm(switchExpressionArmSyntax);
+                    if (result.CorrectUsage) return result;
+                    break;
+                case MemberAccessExpressionSyntax ma:
+                    if (memberAccessValueResult == ma)
+                    {
+                        result.AccessedValue = true;
+                        return result;
+                    }
 
-                return willExecute && ContainsTerminatingStatement(ifStatement.Statement) && !ContainsSyntaxNode(ifStatement.Statement, memberAccess);
-            })
-            .ToList();
+                    break;
+            }
+
+            // Recursively analyze child nodes
+            var r = NodeWalker(memberAccessValueResult, child, result);
+            if (r.CorrectUsage) return r;
+        }
+
+        return result;
     }
 
-    private static bool IsInside<T>(SyntaxNode statement, SyntaxNode memberAccess)
-        where T : SyntaxNode
+    private static void CheckTernaryCondition(MemberAccessExpressionSyntax memberAccessValueResult, WalkerResult result,
+        ConditionalExpressionSyntax ternary)
     {
-        return statement
-            .DescendantNodes()
-            .OfType<T>()
-            .Any(expression => expression.DescendantNodesAndSelf().Any(a => memberAccess == a));
+        result.CheckResult = DetermineCheckResult(ternary.Condition);
+        switch (result.CheckResult)
+        {
+            case CheckResult.CheckedSuccess:
+                result.AccessedValue = ternary.WhenTrue == memberAccessValueResult && ternary.WhenFalse != memberAccessValueResult;
+                break;
+            case CheckResult.CheckedFailure:
+                result.AccessedValue = ternary.WhenFalse == memberAccessValueResult && ternary.WhenTrue != memberAccessValueResult;
+                break;
+        }
     }
+
 
     private static CheckResult DetermineCheckResult(ExpressionSyntax condition)
     {
@@ -234,21 +249,6 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
                || leftExpression.Contains("IsFailure") && rightExpression == "true";
     }
 
-    private static bool ContainsTerminatingStatement(StatementSyntax statement)
-    {
-        return statement switch
-        {
-            // Check for return or throw statements directly within the provided statement
-            ReturnStatementSyntax or ThrowStatementSyntax => true,
-            // If the statement is a block, check its child statements
-            BlockSyntax block
-                => block.Statements.Any(
-                    childStatement => childStatement is ReturnStatementSyntax or ThrowStatementSyntax
-                ),
-            _ => false
-        };
-    }
-
     private static CheckResult CheckSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
     {
         var pattern = switchExpressionArm.Pattern;
@@ -272,11 +272,31 @@ public class UseResultValueWithoutCheck : DiagnosticAnalyzer
     {
         return statement.DescendantNodesAndSelf().Any(n => n == targetNode);
     }
+}
 
-    private enum CheckResult
+class WalkerResult
+{
+    public bool AccessedValue { get; set; }
+    public CheckResult CheckResult { get; set; } = CheckResult.Unchecked;
+    public bool Terminated { get; set; }
+
+    public bool CorrectUsage =>
+        (AccessedValue && CheckResult == CheckResult.CheckedSuccess) || 
+        (CheckResult == CheckResult.CheckedFailure && Terminated && !AccessedValue);
+
+    public void Reset()
     {
-        CheckedSuccess,
-        CheckedFailure,
-        Unchecked
+        AccessedValue = false;
+        CheckResult = CheckResult.Unchecked;
+        Terminated = false;
     }
+
+    public static WalkerResult Default => new WalkerResult();
+}
+
+enum CheckResult
+{
+    CheckedSuccess,
+    CheckedFailure,
+    Unchecked
 }
