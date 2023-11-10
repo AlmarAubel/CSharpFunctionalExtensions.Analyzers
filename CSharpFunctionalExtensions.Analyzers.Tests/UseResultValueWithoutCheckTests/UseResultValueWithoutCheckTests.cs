@@ -13,6 +13,7 @@ public class UseResultValueWithoutCheckTests
     [InlineData("if(!result.IsSuccess) Console.WriteLine( [|result.Value|]);")]
     [InlineData("if(result.IsSuccess == false) Console.WriteLine([|result.Value|]);")]
     [InlineData("if(result.IsSuccess == false || new Random().Next() > 1) Console.WriteLine([|result.Value|]);")]
+    [InlineData("if(result.IsFailure && [|result.Value|] > 0) Console.WriteLine(0);")]
     [InlineData("var x=  a > 0 ? [|result.Value|]: 0;")]
     public async Task Test_AccessValueWithinConditionalStament(string source)
     {
@@ -57,7 +58,7 @@ public class UseResultValueWithoutCheckTests
     [InlineData("if(!result.IsFailure) Console.WriteLine(result.Value);")]
     [InlineData("if(result.IsFailure == false) Console.WriteLine(result.Value);")]
     [InlineData("if(!result.IsFailure && new Random().Next() > 1) Console.WriteLine(result.Value);")]
-    //[InlineData("""if(result.IsFailure || result.Value > 1) Console.WriteLine("foo");""")]
+    [InlineData("""if(result.IsFailure || result.Value > 1) Console.WriteLine("foo");""")]
     [InlineData("var x = !result.IsFailure ? result.Value: 0;")]
     public async Task TestNoDiagnostic_AccesValueOnResultObject_WithCheckIsFailure(string source)
     {
