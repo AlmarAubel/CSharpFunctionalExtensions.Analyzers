@@ -67,7 +67,7 @@ internal class ResultValueWalker
             }
 
             // Recursively analyze child nodes
-             NodeWalkerInternal(child);
+            NodeWalkerInternal(child);
             if (_result.CorrectUsage) return;
         }
     }
@@ -81,37 +81,6 @@ internal class ResultValueWalker
             CheckResult.CheckedFailure => ternary.WhenFalse == _memberAccessValueResult && ternary.WhenTrue != _memberAccessValueResult,
             _ => _result.AccessedValue
         };
-    }
-
-    private CheckResult DetermineCheckResult(ExpressionSyntax condition)
-    {
-        switch (condition)
-        {
-            case BinaryExpressionSyntax binaryExpression:
-                return BinaryExpressionSyntax(binaryExpression);
-            case MemberAccessExpressionSyntax memberAccess:
-                {
-                    switch (memberAccess.Name.ToString())
-                    {
-                        case "IsSuccess":
-                            return CheckResult.CheckedSuccess;
-                        case "IsFailure":
-                            return CheckResult.CheckedFailure;
-                    }
-
-                    break;
-                }
-            case PrefixUnaryExpressionSyntax prefixUnary when prefixUnary.Operand.ToString().Contains("IsSuccess"):
-                return CheckResult.CheckedFailure; // This means we found a !IsSuccess, so it's equivalent to IsFailure.
-            case PrefixUnaryExpressionSyntax prefixUnary when prefixUnary.Operand.ToString().Contains("IsFailure"):
-                return CheckResult.CheckedSuccess; // This means we found a !IsFailure, so it's equivalent to IsSuccess.
-            case ConditionalExpressionSyntax ternary:
-                return DetermineCheckResult(ternary.Condition);
-            case SwitchExpressionSyntax switchExpressionSyntax:
-                throw new NotImplementedException();
-        }
-
-        return CheckResult.Unchecked;
     }
 
     private CheckResult BinaryExpressionSyntax(BinaryExpressionSyntax binaryExpression)
@@ -134,11 +103,15 @@ internal class ResultValueWalker
                     var leftResult = DetermineCheckResult(binaryExpression.Left);
                     var rightResult = DetermineCheckResult(binaryExpression.Right);
 
+                    if (rightResult == CheckResult.AccesedValue && leftResult == CheckResult.CheckedFailure)
+                        return CheckResult.CheckedSuccess;
+                    
                     if (leftResult is CheckResult.Unchecked or CheckResult.CheckedFailure)
                         return leftResult;
 
                     if (rightResult == CheckResult.Unchecked)
                         return rightResult;
+                   
 
                     // If both sides are the same, return either; otherwise, it's ambiguous so return Unchecked.
                     return leftResult == rightResult ? leftResult : CheckResult.Unchecked;
@@ -169,7 +142,43 @@ internal class ResultValueWalker
                     break;
                 }
             default:
-                return CheckResult.Unchecked;
+                var checkResultLeft = DetermineCheckResult(binaryExpression.Left);
+                var checkResultRight = DetermineCheckResult(binaryExpression.Right);
+                if (checkResultLeft == CheckResult.AccesedValue || checkResultRight == CheckResult.AccesedValue)
+                    return CheckResult.AccesedValue;
+                break;
+        }
+
+        return CheckResult.Unchecked;
+    }
+
+    private CheckResult DetermineCheckResult(ExpressionSyntax condition)
+    {
+        switch (condition)
+        {
+            case BinaryExpressionSyntax binaryExpression:
+                return BinaryExpressionSyntax(binaryExpression);
+            case MemberAccessExpressionSyntax memberAccess:
+                {
+                    if (memberAccess == _memberAccessValueResult) return CheckResult.AccesedValue;
+                    switch (memberAccess.Name.ToString())
+                    {
+                        case "IsSuccess":
+                            return CheckResult.CheckedSuccess;
+                        case "IsFailure":
+                            return CheckResult.CheckedFailure;
+                    }
+
+                    break;
+                }
+            case PrefixUnaryExpressionSyntax prefixUnary when prefixUnary.Operand.ToString().Contains("IsSuccess"):
+                return CheckResult.CheckedFailure; // This means we found a !IsSuccess, so it's equivalent to IsFailure.
+            case PrefixUnaryExpressionSyntax prefixUnary when prefixUnary.Operand.ToString().Contains("IsFailure"):
+                return CheckResult.CheckedSuccess; // This means we found a !IsFailure, so it's equivalent to IsSuccess.
+            case ConditionalExpressionSyntax ternary:
+                return DetermineCheckResult(ternary.Condition);
+            case SwitchExpressionSyntax switchExpressionSyntax:
+                throw new NotImplementedException();
         }
 
         return CheckResult.Unchecked;

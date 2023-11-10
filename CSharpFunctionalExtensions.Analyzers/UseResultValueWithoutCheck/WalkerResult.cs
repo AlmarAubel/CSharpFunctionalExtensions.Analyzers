@@ -24,5 +24,6 @@ internal enum CheckResult
 {
     Unchecked,
     CheckedSuccess,
-    CheckedFailure
+    CheckedFailure,
+    AccesedValue
 }
