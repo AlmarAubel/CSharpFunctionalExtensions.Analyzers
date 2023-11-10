@@ -58,7 +58,8 @@ public class Class2
             { Error: "eror" } => 0,
             _ => throw new ArgumentOutOfRangeException()
         };
-
+        
+        var x = (result.IsFailure)? 0: result.Value;
         switch (result.IsSuccess)
         {
             case true:
@@ -68,5 +69,16 @@ public class Class2
         }
 
         return id;
+    }
+
+    public void UsingStatementExample()
+    {
+        var result = Result.Success(1);
+        if (result.IsFailure) return;
+       
+        using (var streamWriter = new StreamWriter("filePath"))
+        {
+            streamWriter.Write(result.Value);
+        }
     }
 }
