@@ -55,7 +55,7 @@ class Build : NukeBuild
 
     static readonly string PackageContentType = "application/octet-stream";
     static string ChangeLogFile => RootDirectory / "CHANGELOG.md";
-    
+
     string BranchSpec => GitHubActions?.Ref;
     bool IsTag => BranchSpec != null && BranchSpec.Contains("refs/tags", StringComparison.OrdinalIgnoreCase);
 
@@ -73,7 +73,7 @@ class Build : NukeBuild
         });
 
     Target Restore => _ => _
-        .DependsOn(Clean)       
+        .DependsOn(Clean)
         .Executes(() =>
         {
             DotNetRestore(s => s.SetProjectFile(SourceDirectory));
@@ -130,7 +130,8 @@ class Build : NukeBuild
     Target PublishToGithub => _ => _
         .Description($"Publishing to Github for Development only.")
         .Triggers(CreateRelease)
-        .OnlyWhenStatic(() => Repository.IsOnDevelopBranch() && GitHubActions is not null || GitHubActions?.IsPullRequest == true)
+        .OnlyWhenStatic(() =>
+            (Repository.IsOnDevelopBranch() || Repository.IsOnReleaseBranch()) && GitHubActions is not null || GitHubActions?.IsPullRequest == true)
         .Executes(() =>
         {
             ArtifactsDirectory.GlobFiles(ArtifactsType)
@@ -162,7 +163,7 @@ class Build : NukeBuild
                     )
             );
         });
-    
+
     Target CreateRelease => _ => _
         .Description($"Creating release for the publishable version.")
         .OnlyWhenStatic(() => Repository.IsOnMainOrMasterBranch() || Repository.IsOnReleaseBranch())
@@ -225,7 +226,7 @@ class Build : NukeBuild
 
             Log.Information("Https URL = {Value}", Repository.HttpsUrl);
             Log.Information("SSH URL = {Value}", Repository.SshUrl);
-            
+
             Log.Information("ChangeLogFile = {Value}", ChangeLogFile);
             Log.Information("SourceDirectory = {Value}", SourceDirectory);
             Log.Information("RootDirectory = {Value}", RootDirectory);
