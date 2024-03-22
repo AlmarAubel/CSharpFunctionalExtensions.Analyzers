@@ -166,7 +166,8 @@ class Build : NukeBuild
 
     Target CreateRelease => _ => _
         .Description($"Creating release for the publishable version.")
-        .OnlyWhenStatic(() => Repository.IsOnMainOrMasterBranch() || Repository.IsOnReleaseBranch())
+        //Create release is not working just turn it off for now.
+        .OnlyWhenStatic(() => false  && (Repository.IsOnMainOrMasterBranch() || Repository.IsOnReleaseBranch()))
         .Executes(async () =>
         {
             var credentials = new Credentials(GitHubActions.Token);
