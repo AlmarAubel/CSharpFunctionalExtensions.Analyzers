@@ -91,6 +91,17 @@ public class UseResultValueWithoutCheckTests
     {
         await VerifyDiagnosticAsync(AddContext(source), options: CSharpTestOptions());
     }
+    
+    [Theory]
+    [InlineData("if(!result.IsFailure) Console.WriteLine(result.Value);")]
+    [InlineData(" var x = result.IsFailure ? 0 : result.Value;")]
+    [InlineData(" var x = !result.IsSuccess ? 0 : result.Value;")]
+    [InlineData(" var x = result.IsSuccess ? result.Value : 0;")]
+    [InlineData(" var x = !result.IsFailure ? result.Value : 0;")]
+    public async Task TestNoDiagnostic_AccessValueAfterCheckForFailure(string source)
+    {
+        await VerifyNoDiagnosticAsync(AddContext(source), options: CSharpTestOptions());
+    }
 
     [Fact]
     public async Task Test_AccessWithinReturnStatement()

@@ -151,7 +151,6 @@ class Build : NukeBuild
         .Requires(() => NugetApiUrl)
         .Requires(() => NugetApiKey)
         .OnlyWhenDynamic(() => IsTag|| Repository.IsOnReleaseBranch(), "No Tag added to commit")
-        .Triggers(CreateRelease)
         .Executes(() =>
         {
             DotNetNuGetPush(s =>

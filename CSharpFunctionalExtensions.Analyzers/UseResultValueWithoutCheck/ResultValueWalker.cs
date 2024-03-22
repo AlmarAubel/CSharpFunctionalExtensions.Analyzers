@@ -73,10 +73,11 @@ internal class ResultValueWalker
     private void CheckTernaryCondition(ConditionalExpressionSyntax ternary)
     {
         _result.CheckResult = DetermineCheckResult(ternary.Condition);
+        _result.Terminated = true;
         _result.AccessedValue = _result.CheckResult switch
         {
             CheckResult.CheckedSuccess => ternary.WhenTrue == _memberAccessValueResult && ternary.WhenFalse != _memberAccessValueResult,
-            CheckResult.CheckedFailure => ternary.WhenFalse == _memberAccessValueResult && ternary.WhenTrue != _memberAccessValueResult,
+            CheckResult.CheckedFailure => ternary.WhenTrue == _memberAccessValueResult,
             _ => _result.AccessedValue
         };
     }
@@ -183,8 +184,6 @@ internal class ResultValueWalker
                 {
                     RecursivePatternSyntax recursivePatternSyntax => CheckedRecusivePattern(recursivePatternSyntax),
                 };
-
-                break;
             case SwitchExpressionSyntax switchExpressionSyntax:
                 throw new NotImplementedException();
         }
