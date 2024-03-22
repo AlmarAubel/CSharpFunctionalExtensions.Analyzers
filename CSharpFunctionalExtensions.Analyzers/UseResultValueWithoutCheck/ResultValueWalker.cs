@@ -181,7 +181,7 @@ internal class ResultValueWalker
                 return isPatternExpressionSyntax.Pattern switch
                 {
                     RecursivePatternSyntax recursivePatternSyntax => CheckedRecusivePattern(recursivePatternSyntax),
-                    _ => throw new ArgumentOutOfRangeException()
+                    _ => throw new ArgumentOutOfRangeException(isPatternExpressionSyntax.Pattern.ToString() + " " + isPatternExpressionSyntax.Pattern.Kind())
                 };
 
                 break;
