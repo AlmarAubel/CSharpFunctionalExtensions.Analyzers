@@ -97,7 +97,7 @@ public class UseResultValueWithoutCheckTests
     {
         await VerifyDiagnosticAsync(
             $$"""
-                                        using System;
+                                        using System; 
                                         using CSharpFunctionalExtensions;
 
                                         public class Class2
