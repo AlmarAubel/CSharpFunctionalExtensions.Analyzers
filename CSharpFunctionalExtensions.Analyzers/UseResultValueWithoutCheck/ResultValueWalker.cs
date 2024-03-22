@@ -31,18 +31,16 @@ internal class ResultValueWalker
             {
                 //Fix if(result.IsFailure || result.Value > 1) Console.WriteLine("foo"); is marked als inccorrect usage
                 case IfStatementSyntax ifStatement:
+                    _result.CheckResult = DetermineCheckResult(ifStatement.Condition);
+                    NodeWalkerInternal(ifStatement);
+                    if (_result.CorrectUsage) return;
+                    if (_result is { CheckResult: CheckResult.CheckedSuccess, Terminated: true, AccessedValue: false })
                     {
-                        _result.CheckResult = DetermineCheckResult(ifStatement.Condition);
-                        NodeWalkerInternal(ifStatement);
-                        if (_result.CorrectUsage) return;
-                        if (_result is { CheckResult: CheckResult.CheckedSuccess, Terminated: true, AccessedValue: false })
-                        {
-                            _result.CheckResult = CheckResult.Unchecked;
-                        }
-
-                        _result.Terminated = false;
-                        break;
+                        _result.CheckResult = CheckResult.Unchecked;
                     }
+
+                    _result.Terminated = false;
+                    break;
                 case ReturnStatementSyntax or ThrowStatementSyntax:
                     _result.Terminated = true;
                     NodeWalkerInternal(child);
@@ -105,13 +103,13 @@ internal class ResultValueWalker
 
                     if (rightResult == CheckResult.AccesedValue && leftResult == CheckResult.CheckedFailure)
                         return CheckResult.CheckedSuccess;
-                    
+
                     if (leftResult is CheckResult.Unchecked or CheckResult.CheckedFailure)
                         return leftResult;
 
                     if (rightResult == CheckResult.Unchecked)
                         return rightResult;
-                   
+
 
                     // If both sides are the same, return either; otherwise, it's ambiguous so return Unchecked.
                     return leftResult == rightResult ? leftResult : CheckResult.Unchecked;
@@ -126,7 +124,9 @@ internal class ResultValueWalker
 
                     if (IsFailure(leftExpression, rightExpression))
                         return CheckResult.CheckedFailure;
-
+                    if (DetermineCheckResult(binaryExpression.Left) == CheckResult.AccesedValue ||
+                        DetermineCheckResult(binaryExpression.Right) == CheckResult.AccesedValue)
+                        return CheckResult.AccesedValue;
                     break;
                 }
             case SyntaxKind.ExclamationEqualsToken:
@@ -177,6 +177,14 @@ internal class ResultValueWalker
                 return CheckResult.CheckedSuccess; // This means we found a !IsFailure, so it's equivalent to IsSuccess.
             case ConditionalExpressionSyntax ternary:
                 return DetermineCheckResult(ternary.Condition);
+            case IsPatternExpressionSyntax isPatternExpressionSyntax:
+                return isPatternExpressionSyntax.Pattern switch
+                {
+                    RecursivePatternSyntax recursivePatternSyntax => CheckedRecusivePattern(recursivePatternSyntax),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
+                break;
             case SwitchExpressionSyntax switchExpressionSyntax:
                 throw new NotImplementedException();
         }
@@ -200,7 +208,11 @@ internal class ResultValueWalker
     {
         var pattern = switchExpressionArm.Pattern;
         // Todo check if switchExpression is on the result object
-        if (pattern is not RecursivePatternSyntax recursivePattern) return CheckResult.Unchecked;
+        return pattern is not RecursivePatternSyntax recursivePattern ? CheckResult.Unchecked : CheckedRecusivePattern(recursivePattern);
+    }
+
+    private static CheckResult CheckedRecusivePattern(RecursivePatternSyntax recursivePattern)
+    {
         foreach (var propPattern in recursivePattern.PropertyPatternClause?.Subpatterns)
         {
             var name = (propPattern.Pattern as ConstantPatternSyntax)?.Expression.ToString();
