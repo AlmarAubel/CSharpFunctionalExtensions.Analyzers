@@ -8,7 +8,7 @@ internal class WalkerResult
 
     public bool CorrectUsage =>
         (AccessedValue && CheckResult == CheckResult.CheckedSuccess) || 
-        (CheckResult == CheckResult.CheckedFailure && Terminated || !AccessedValue);
+        (CheckResult == CheckResult.CheckedFailure && Terminated && !AccessedValue);
 
     public void Reset()
     {
