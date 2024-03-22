@@ -48,6 +48,7 @@ public class UseResultValueWithoutCheckTests
     [InlineData("if(result.IsSuccess) Console.WriteLine(result.Value);")]
     [InlineData("if(result.IsSuccess == true) Console.WriteLine(result.Value);")]
     [InlineData("if(result.IsSuccess && new Random().Next() > 1) Console.WriteLine(result.Value);")]
+    [InlineData("if(result is { IsSuccess: true, Value: > 1 }) Console.WriteLine(result.Value);")]
     [InlineData("var x = result.IsSuccess ? result.Value: 0;")]
     public async Task TestNoDiagnostic_AccesValueOnResultObject_WithCheckIsSuccess(string source)
     {
@@ -59,6 +60,8 @@ public class UseResultValueWithoutCheckTests
     [InlineData("if(result.IsFailure == false) Console.WriteLine(result.Value);")]
     [InlineData("if(!result.IsFailure && new Random().Next() > 1) Console.WriteLine(result.Value);")]
     [InlineData("""if(result.IsFailure || result.Value > 1) Console.WriteLine("foo");""")]
+    [InlineData("""if(result.IsFailure || result.Value == 1) Console.WriteLine("foo");""")]
+    [InlineData("""if(!result.IsSuccess || result.Value > 1) Console.WriteLine("foo");""")]
     [InlineData("var x = !result.IsFailure ? result.Value: 0;")]
     public async Task TestNoDiagnostic_AccesValueOnResultObject_WithCheckIsFailure(string source)
     {
@@ -82,8 +85,8 @@ public class UseResultValueWithoutCheckTests
 
     [Theory]
     [InlineData("if(result.IsFailure) Console.WriteLine([|result.Value|]);")]
-    [InlineData(" var x=  result.IsFailure ? [|result.Value|]: 0;")]
-    [InlineData(" var x=  result.IsSuccess ? 0: [|result.Value|];")]
+    [InlineData(" var x = result.IsFailure ? [|result.Value|]: 0;")]
+    [InlineData(" var x = result.IsSuccess ? 0: [|result.Value|];")]
     public async Task Test_AccessValueAfterCheckForFailure(string source)
     {
         await VerifyDiagnosticAsync(AddContext(source), options: CSharpTestOptions());

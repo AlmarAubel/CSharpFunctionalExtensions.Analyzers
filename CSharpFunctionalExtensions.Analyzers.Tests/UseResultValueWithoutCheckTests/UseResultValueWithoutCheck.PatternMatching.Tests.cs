@@ -12,6 +12,8 @@ public class UseResultValueWithoutCheckPatternMatchingTests
     [Theory]
     [InlineData(" { IsSuccess: true } => result.Value")]
     [InlineData(" { IsFailure: false } => result.Value")]
+    [InlineData(" { IsSuccess: true, Value: 1 } => result.Value")]
+    [InlineData(" { IsSuccess: true, Value: > 1 } => result.Value")]
     public async Task TestNoDiagnostics_AccessValueAfterCheck(string source)
     {
         await VerifyNoDiagnosticAsync(AddPatternMatchingContext(source), options: CSharpTestOptions());
