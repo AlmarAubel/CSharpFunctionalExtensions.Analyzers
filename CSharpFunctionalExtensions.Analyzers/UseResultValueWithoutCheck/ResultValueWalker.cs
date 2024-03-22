@@ -178,10 +178,12 @@ internal class ResultValueWalker
             case ConditionalExpressionSyntax ternary:
                 return DetermineCheckResult(ternary.Condition);
             case IsPatternExpressionSyntax isPatternExpressionSyntax:
+                var info = DebugInfo(isPatternExpressionSyntax);
                 return isPatternExpressionSyntax.Pattern switch
                 {
                     RecursivePatternSyntax recursivePatternSyntax => CheckedRecusivePattern(recursivePatternSyntax),
-                    _ => throw new ArgumentOutOfRangeException(isPatternExpressionSyntax.Pattern.ToString() + " " + isPatternExpressionSyntax.Pattern.Kind())
+                    _ => throw new ArgumentOutOfRangeException(info +" " +isPatternExpressionSyntax.Pattern.ToString() + " " +
+                                                               isPatternExpressionSyntax.Pattern.Kind())
                 };
 
                 break;
@@ -190,6 +192,16 @@ internal class ResultValueWalker
         }
 
         return CheckResult.Unchecked;
+    }
+
+    private static string DebugInfo(ExpressionSyntax syntax)
+    {
+        var syntaxTree = syntax.SyntaxTree;
+        var lineSpan = syntaxTree.GetLineSpan(syntax.Span);
+        var startLineNumber = lineSpan.StartLinePosition.Line; // 0-based
+        var startCharacterPosition = lineSpan.StartLinePosition.Character; // Ook 0-based
+        var filePath = syntaxTree.FilePath;
+        return $"File: {filePath} Line: {startLineNumber +1}, Char: {startCharacterPosition + 1}";
     }
 
     private static bool IsSuccess(string leftExpression, string rightExpression)
