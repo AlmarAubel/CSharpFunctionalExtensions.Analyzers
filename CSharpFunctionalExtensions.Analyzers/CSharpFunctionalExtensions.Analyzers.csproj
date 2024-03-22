@@ -36,7 +36,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <PackageReference Include="CSharpFunctionalExtensions" Version="2.40.3" >
+        <PackageReference Include="CSharpFunctionalExtensions" Version="2.41.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>        
