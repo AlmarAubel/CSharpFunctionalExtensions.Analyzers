@@ -184,8 +184,8 @@ internal class ResultValueWalker
                 {
                     RecursivePatternSyntax recursivePatternSyntax => CheckedRecusivePattern(recursivePatternSyntax),
                 };
-            case SwitchExpressionSyntax switchExpressionSyntax:
-                throw new NotImplementedException();
+            // case SwitchExpressionSyntax switchExpressionSyntax:
+            //     throw new NotImplementedException();
         }
 
         return CheckResult.Unchecked;
