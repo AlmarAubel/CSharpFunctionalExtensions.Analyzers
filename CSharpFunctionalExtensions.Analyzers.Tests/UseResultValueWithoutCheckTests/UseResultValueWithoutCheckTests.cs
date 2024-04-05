@@ -63,6 +63,7 @@ public class UseResultValueWithoutCheckTests
     [InlineData("""if(result.IsFailure || result.Value == 1) Console.WriteLine("foo");""")]
     [InlineData("""if(!result.IsSuccess || result.Value > 1) Console.WriteLine("foo");""")]
     [InlineData("var x = !result.IsFailure ? result.Value: 0;")]
+    [InlineData("var x = result.IsSuccess ? Foo(result.Value): 0;")]
     public async Task TestNoDiagnostic_AccesValueOnResultObject_WithCheckIsFailure(string source)
     {
         await VerifyNoDiagnosticAsync(AddContext(source), options: CSharpTestOptions());
@@ -101,6 +102,26 @@ public class UseResultValueWithoutCheckTests
     public async Task TestNoDiagnostic_AccessValueAfterCheckForFailure(string source)
     {
         await VerifyNoDiagnosticAsync(AddContext(source), options: CSharpTestOptions());
+    } 
+    
+    [Theory]
+    [InlineData("return result.IsSuccess ? result.Value: 0;")]
+    [InlineData("return result.IsSuccess ? Foo(result.Value) : 0;")]
+    [InlineData("return !result.IsSuccess ? 0: result.Value;")]
+    [InlineData("return !result.IsSuccess ? 0: Foo(result.Value);")]
+    public async Task TestNoDiagnostic_AccessValueAfterCheckForSuccessWithReturn(string source)
+    {
+        await VerifyNoDiagnosticAsync(AddReturnValueContext(source), options: CSharpTestOptions());
+    }  
+    
+    [Theory]
+    [InlineData("return !result.IsSuccess ? [|result.Value|]: 0;")]
+    [InlineData("return !result.IsSuccess ? Foo([|result.Value|]) : 0;")]
+    [InlineData("return result.IsSuccess ? 0: [|result.Value|];")]
+    [InlineData("return result.IsSuccess ? 0: Foo([|result.Value|]);")]
+    public async Task TestDiagnostic_AccessValueAfterCheckForSuccessWithReturn(string source)
+    {
+        await VerifyDiagnosticAsync(AddReturnValueContext(source), options: CSharpTestOptions());
     }
 
     [Fact]
@@ -203,6 +224,30 @@ public class UseResultValueWithoutCheckTests
               {
                  var result = {{result}};
                  {{testString}}
+              }
+              public int Foo(int bar)
+              {
+                 return bar;
+              }
+          }
+          """;
+    
+    private string AddReturnValueContext(string testString, string result = "Result.Success(1)") =>
+        $$"""
+          using System;
+          using CSharpFunctionalExtensions;
+
+          public class FunctionsWithResultObject
+          {
+              public int GetId(int a)
+              {
+                var result = {{result}};
+                {{testString}}
+              }
+              
+              public int Foo(int bar)
+              {
+                return bar;
               }
           }
           """;

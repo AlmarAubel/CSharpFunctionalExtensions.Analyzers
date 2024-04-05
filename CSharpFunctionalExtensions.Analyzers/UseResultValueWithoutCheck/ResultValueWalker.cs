@@ -74,14 +74,34 @@ internal class ResultValueWalker
     {
         _result.CheckResult = DetermineCheckResult(ternary.Condition);
         _result.Terminated = true;
+        bool whenTrueContainsAccess = ContainsMatchingMemberAccess(ternary.WhenTrue, _memberAccessValueResult);
+        bool whenFalseContainsAccess = ContainsMatchingMemberAccess(ternary.WhenFalse, _memberAccessValueResult);
+
         _result.AccessedValue = _result.CheckResult switch
         {
-            CheckResult.CheckedSuccess => ternary.WhenTrue == _memberAccessValueResult && ternary.WhenFalse != _memberAccessValueResult,
-            CheckResult.CheckedFailure => ternary.WhenTrue == _memberAccessValueResult,
+            CheckResult.CheckedSuccess => whenTrueContainsAccess && !whenFalseContainsAccess,
+            CheckResult.CheckedFailure => whenTrueContainsAccess,
             _ => _result.AccessedValue
         };
     }
+    
+    private bool ContainsMatchingMemberAccess(SyntaxNode expression, SyntaxNode targetMemberAccess)
+    {
+        if (expression.IsEquivalentTo(targetMemberAccess))
+            return true;
+     
+        foreach (var child in expression.DescendantNodes().OfType<ExpressionSyntax>())
+        {
+            if (child is MemberAccessExpressionSyntax memberAccess && memberAccess.IsEquivalentTo(targetMemberAccess))
+                return true;
+     
+            if (ContainsMatchingMemberAccess(child, targetMemberAccess))
+                return true;
+            
+        }
 
+        return false;
+    }
     private CheckResult BinaryExpressionSyntax(BinaryExpressionSyntax binaryExpression)
     {
         switch (binaryExpression.OperatorToken.Kind())
