@@ -14,3 +14,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Enhanced Roslyn analyzer to support Switch Expression Syntax. The analyzer now correctly identifies and validates 
  usage of `IsSuccess` and `Value` within C# switch expressions, providing a more comprehensive code quality check.
+## 1.4.1 / 2024-03-22
+- Addressed multiple issues related to pattern matching and complex conditional logic that were impacting code analysis accuracy.

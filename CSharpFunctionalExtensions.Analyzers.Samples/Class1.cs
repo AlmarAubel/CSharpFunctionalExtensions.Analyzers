@@ -44,22 +44,29 @@ public class Class2
     {
         var y = Result.Success(1);
 
-        if (y.IsFailure) return y.Value;
-
+        if (!y.IsSuccess || y.Value > 0 )  return 0;
+        
         return 1;
     }
 
+    public int Test2()
+    {
+        var y = Result.Success(1);
+        var x =  y.IsSuccess ? y.Value : 0;
+        var foo = y.Value;
+        return y.IsFailure ? 0 : y.Value;
+    }
     public int PatternMatching()
     {
         var result = Result.Success(1);
         var id = result switch
         {
-            { IsSuccess: true }=> result.Value,
-            { Error: "eror" } => 0,
+            { IsSuccess: true, Value: 1 }=> result.Value,
+            { Error: "eror", Value: 1  } => 0,
             _ => throw new ArgumentOutOfRangeException()
         };
         
-        var x = (result.IsFailure)? 0: result.Value;
+        var x = result.IsFailure? 0: result.Value;
         switch (result.IsSuccess)
         {
             case true:
@@ -75,10 +82,29 @@ public class Class2
     {
         var result = Result.Success(1);
         if (result.IsFailure) return;
-       
+        //var resultMessage = !result.IsSuccess ? $"{result.Value} success." : "Failed.";
         using (var streamWriter = new StreamWriter("filePath"))
         {
             streamWriter.Write(result.Value);
         }
     }
+    
+    public void CombinedCheckExample()
+    {
+        var result = Result.Success(1);
+        //if (result.IsFailure || result.Value == 1 ) return;
+        if (result is { IsSuccess: true, Value: > 1 })
+        {
+            Console.WriteLine("foo" + result.Value);
+        }
+        
+        // if (result.IsSuccess && result.Value == 1)
+        // {
+        //     Console.WriteLine("foo" + result.Value);
+        // }
+       
+      
+    }
+    
+    
 }
