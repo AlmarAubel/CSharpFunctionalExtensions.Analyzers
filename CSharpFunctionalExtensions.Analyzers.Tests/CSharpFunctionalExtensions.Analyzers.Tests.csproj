@@ -22,7 +22,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="CSharpFunctionalExtensions" Version="2.41.0" />
+        <PackageReference Include="CSharpFunctionalExtensions" Version="2.42.5" />
         <PackageReference Include="Microsoft.CodeAnalysis.CodeFix.Testing" Version="1.1.1" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="1.1.1"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="1.1.1"/>        

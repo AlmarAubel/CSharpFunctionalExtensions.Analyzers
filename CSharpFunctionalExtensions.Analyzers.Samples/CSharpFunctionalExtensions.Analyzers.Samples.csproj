@@ -15,7 +15,7 @@
                           OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="CSharpFunctionalExtensions" Version="2.41.0" />
+      <PackageReference Include="CSharpFunctionalExtensions" Version="2.42.5" />
     </ItemGroup>
 
 </Project>
